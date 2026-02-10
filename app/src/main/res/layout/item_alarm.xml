@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="#1E1E1E"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 上部: ラベル -->
+        <TextView
+            android:id="@+id/alarmLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="祝日を除く"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp" />
+
+        <!-- 中部: 時刻とスイッチ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 午前/午後 -->
+            <TextView
+                android:id="@+id/alarmPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="午前"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <!-- 時刻 -->
+            <TextView
+                android:id="@+id/alarmTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1:00"
+                android:textColor="#FFFFFF"
+                android:textSize="48sp"
+                android:textStyle="normal" />
+
+            <!-- オン/オフスイッチ -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/alarmSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                app:thumbTint="@android:color/white"
+                app:trackTint="#7B68EE" />
+
+        </LinearLayout>
+
+        <!-- 下部: 曜日選択 -->
+        <LinearLayout
+            android:id="@+id/daysLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/daySunday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="日" />
+
+            <TextView
+                android:id="@+id/dayMonday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="月" />
+
+            <TextView
+                android:id="@+id/dayTuesday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#7B68EE"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="火" />
+
+            <TextView
+                android:id="@+id/dayWednesday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#7B68EE"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="水" />
+
+            <TextView
+                android:id="@+id/dayThursday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#7B68EE"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="木" />
+
+            <TextView
+                android:id="@+id/dayFriday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#7B68EE"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="金" />
+
+            <TextView
+                android:id="@+id/daySaturday"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="土" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

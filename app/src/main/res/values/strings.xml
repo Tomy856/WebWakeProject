@@ -3,4 +3,6 @@
     <string name="chrome_youtube">launch_chrome_text</string>
     <string name="alarm_title">アラーム設定</string>
     <string name="set_alarm_label">アラームをセット</string>
+    <string name="add_alarm">アラームを追加</string>
+    <string name="menu">メニュー</string>
 </resources>
