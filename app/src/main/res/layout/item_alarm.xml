@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -14,14 +15,30 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- 上部: ラベル -->
-        <TextView
-            android:id="@+id/alarmLabel"
-            android:layout_width="wrap_content"
+        <!-- 上部: チェックアイコン＋ラベル -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="祝日を除く"
-            android:textColor="#AAAAAA"
-            android:textSize="14sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 選択モード時のチェックアイコン -->
+            <ImageView
+                android:id="@+id/checkIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="12dp"
+                android:src="@android:drawable/checkbox_off_background"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/alarmLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
+
+        </LinearLayout>
 
         <!-- 中部: 時刻とスイッチ -->
         <LinearLayout
@@ -31,7 +48,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- 午前/午後 -->
             <TextView
                 android:id="@+id/alarmPeriod"
                 android:layout_width="wrap_content"
@@ -44,18 +60,15 @@
                 android:layout_width="8dp"
                 android:layout_height="1dp" />
 
-            <!-- 時刻 -->
             <TextView
                 android:id="@+id/alarmTime"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="1:00"
+                android:text="6:00"
                 android:textColor="#FFFFFF"
-                android:textSize="48sp"
-                android:textStyle="normal" />
+                android:textSize="48sp" />
 
-            <!-- オン/オフスイッチ -->
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/alarmSwitch"
                 android:layout_width="wrap_content"
@@ -66,7 +79,7 @@
 
         </LinearLayout>
 
-        <!-- 下部: 曜日選択 -->
+        <!-- 下部: 曜日 -->
         <LinearLayout
             android:id="@+id/daysLayout"
             android:layout_width="match_parent"
@@ -75,89 +88,47 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/daySunday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="日" />
+            <TextView android:id="@+id/daySunday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="日" />
 
-            <TextView
-                android:id="@+id/dayMonday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="月" />
+            <TextView android:id="@+id/dayMonday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="月" />
 
-            <TextView
-                android:id="@+id/dayTuesday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#7B68EE"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="火" />
+            <TextView android:id="@+id/dayTuesday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="火" />
 
-            <TextView
-                android:id="@+id/dayWednesday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#7B68EE"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="水" />
+            <TextView android:id="@+id/dayWednesday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="水" />
 
-            <TextView
-                android:id="@+id/dayThursday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#7B68EE"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="木" />
+            <TextView android:id="@+id/dayThursday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="木" />
 
-            <TextView
-                android:id="@+id/dayFriday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#7B68EE"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="金" />
+            <TextView android:id="@+id/dayFriday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="金" />
 
-            <TextView
-                android:id="@+id/daySaturday"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="土" />
+            <TextView android:id="@+id/daySaturday"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:gravity="center"
+                android:paddingTop="4dp" android:paddingBottom="4dp"
+                android:textColor="#666666" android:textSize="14sp" android:text="土" />
 
         </LinearLayout>
 

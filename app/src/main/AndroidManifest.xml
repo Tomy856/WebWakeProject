@@ -2,13 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 権限 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
         android:allowBackup="true"
@@ -21,7 +22,6 @@
         android:theme="@style/Theme.WebWakeProject"
         tools:targetApi="31">
 
-        <!-- メインアクティビティ（アラーム一覧画面） -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,23 +31,30 @@
             </intent-filter>
         </activity>
 
-        <!-- アラーム設定アクティビティ（新規追加用） -->
         <activity
             android:name=".AlarmSetupActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
-        <!-- アラームレシーバー -->
         <receiver
             android:name=".AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
-        <!-- アラーム通知サービス -->
+        <receiver
+            android:name=".AlarmActionReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
         <service
             android:name=".AlarmService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="alarm" />
+        </service>
 
     </application>
 

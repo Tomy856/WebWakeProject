@@ -1,53 +1,269 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@android:color/black"
+    android:orientation="vertical">
 
-    <androidx.core.widget.NestedScrollView
+    <!-- 通常モード: タイトルバー -->
+    <LinearLayout
+        android:id="@+id/normalHeader"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
+        <!-- アラームなし: 「アラーム」タイトル -->
+        <TextView
+            android:id="@+id/headerTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="32dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:gravity="center"
+            android:text="アラーム"
+            android:textColor="@android:color/white"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:visibility="visible" />
+
+        <!-- アラームあり: 次のアラームまでの時間 -->
         <LinearLayout
+            android:id="@+id/nextAlarmInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingTop="32dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="8dp"
+        android:gravity="center"
+            android:visibility="gone">
 
-            <!-- アラーム一覧 -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/alarmRecyclerView"
+            <!-- 「XX時間XX分後にアラームが鳴動」 -->
+            <TextView
+                android:id="@+id/nextAlarmCountdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:gravity="center"
+                android:text="12時間45分後に\nアラームが鳴動"
+                android:textColor="@android:color/white"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:lineSpacingMultiplier="1.1" />
+
+            <!-- 「2月14日(土) 午前6:00」 -->
+            <TextView
+                android:id="@+id/nextAlarmDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="2月14日(土) 午前6:00"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
 
         </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+        <!-- ＋ と ⋮ ボタン行 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp">
 
-    <!-- アラーム追加ボタン -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addAlarmFab"
-        android:layout_width="wrap_content"
+            <ImageButton
+                android:id="@+id/addAlarmButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/add_alarm"
+                android:src="@android:drawable/ic_input_add"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/menuButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/menu"
+                android:src="@android:drawable/ic_menu_more"
+                android:tint="@android:color/white" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 選択モード: タイトルバー -->
+    <LinearLayout
+        android:id="@+id/selectionHeader"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/add_alarm"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="@android:color/white" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone">
 
-    <!-- メニューボタン -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/menuFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="88dp"
-        android:contentDescription="@string/menu"
-        android:src="@android:drawable/ic_menu_more"
-        app:fabSize="mini"
-        app:tint="@android:color/white" />
+        <ImageView
+            android:id="@+id/selectAllCheck"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/checkbox_off_background" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="全て"
+            android:textColor="#AAAAAA"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/selectionCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="0件選択"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/cancelSelection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="キャンセル"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- アラーム一覧 / 空メッセージ -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/emptyText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="アラームがありません"
+            android:textColor="#888888"
+            android:textSize="16sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/alarmRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- 通常モード: 下部ナビゲーション -->
+    <LinearLayout
+        android:id="@+id/normalBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="#111111"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_lock_idle_alarm"
+                android:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="アラーム"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 選択モード: 下部アクションバー -->
+    <LinearLayout
+        android:id="@+id/selectionBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="#111111"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/actionTurnOff"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_lock_idle_alarm"
+                android:tint="#AAAAAA" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="OFF"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/actionDelete"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:tint="#AAAAAA" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="全削除"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
