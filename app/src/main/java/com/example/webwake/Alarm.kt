@@ -6,9 +6,12 @@ data class Alarm(
     val minute: Int,
     val label: String = "",
     val isEnabled: Boolean = true,
-    val repeatDays: Set<Int> = emptySet(), // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
+    val repeatDays: Set<Int> = emptySet(),
     val vibrate: Boolean = true,
-    val url: String = "",               // 起動するURL
-    val excludeHolidays: Boolean = false, // 祝日を除く
-    val specificDate: String = ""        // 特定日付 "YYYY-MM-DD"、空なら曜日繰り返し
+    val url: String = "",
+    val excludeHolidays: Boolean = false,
+    val specificDate: String = "",
+    val lastScheduledMillis: Long = 0L,
+    val isReactivated: Boolean = false,
+    val showReactivateButton: Boolean = false  // スイッチOFFにした時だけtrue、アプリ起動時はfalse
 )

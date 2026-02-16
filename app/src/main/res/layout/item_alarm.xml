@@ -15,14 +15,13 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- 上部: チェックアイコン＋ラベル -->
+        <!-- 上部: チェックアイコン＋ラベル＋次回鳴動テキスト -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- 選択モード時のチェックアイコン -->
             <ImageView
                 android:id="@+id/checkIcon"
                 android:layout_width="24dp"
@@ -31,6 +30,7 @@
                 android:src="@android:drawable/checkbox_off_background"
                 android:visibility="gone" />
 
+            <!-- ラベル -->
             <TextView
                 android:id="@+id/alarmLabel"
                 android:layout_width="wrap_content"
@@ -38,9 +38,29 @@
                 android:textColor="#AAAAAA"
                 android:textSize="14sp" />
 
+            <!-- 区切り「|」ラベルと次回鳴動の間 -->
+            <TextView
+                android:id="@+id/labelDivider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" | "
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <!-- 次回鳴動テキスト（ON時・曜日ありのみ表示） -->
+            <TextView
+                android:id="@+id/nextRingText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
-        <!-- 中部: 時刻とスイッチ -->
+        <!-- 中部: 時刻・日付情報・スイッチ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,6 +89,16 @@
                 android:textColor="#FFFFFF"
                 android:textSize="48sp" />
 
+            <TextView
+                android:id="@+id/alarmDateText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:gravity="center"
+                android:textColor="#7B68EE"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/alarmSwitch"
                 android:layout_width="wrap_content"
@@ -79,14 +109,15 @@
 
         </LinearLayout>
 
-        <!-- 下部: 曜日 -->
+        <!-- 曜日行 -->
         <LinearLayout
             android:id="@+id/daysLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <TextView android:id="@+id/daySunday"
                 android:layout_width="0dp" android:layout_height="wrap_content"
@@ -129,6 +160,43 @@
                 android:layout_weight="1" android:gravity="center"
                 android:paddingTop="4dp" android:paddingBottom="4dp"
                 android:textColor="#666666" android:textSize="14sp" android:text="土" />
+
+        </LinearLayout>
+
+        <!-- OFF時: 次回ON予定ボタン（「🕐 2月22日再度ON」） -->
+        <LinearLayout
+            android:id="@+id/nextOnLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/nextOnButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="@drawable/next_on_bg"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/ic_lock_idle_alarm"
+                    android:tint="#AAAAAA" />
+
+                <TextView
+                    android:id="@+id/nextOnText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

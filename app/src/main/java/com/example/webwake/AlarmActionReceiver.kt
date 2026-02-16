@@ -50,11 +50,19 @@ class AlarmActionReceiver : BroadcastReceiver() {
 
     private fun rescheduleIfRepeat(context: Context, alarmId: Long) {
         val storage = AlarmStorage(context)
-        val alarms = storage.loadAlarms()
-        val alarm = alarms.find { it.id == alarmId } ?: return
+        val alarms  = storage.loadAlarms()
+        val alarm   = alarms.find { it.id == alarmId } ?: return
+        val index   = alarms.indexOfFirst { it.id == alarmId }
 
         if (alarm.repeatDays.isNotEmpty()) {
+            // 曜日繰り返し: 次回を再スケジュール
             AlarmScheduler.schedule(context, alarm)
+        } else {
+            // 日付指定 or 何も指定なし: OFF扱いにする
+            if (index != -1) {
+                alarms[index] = alarm.copy(isEnabled = false)
+                storage.saveAlarms(alarms)
+            }
         }
     }
 }

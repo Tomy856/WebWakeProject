@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="34dp"
+    android:viewportWidth="48"
+    android:viewportHeight="34">
+
+    <!-- 赤い背景 -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M46.98,5.31 C46.44,3.28 44.84,1.68 42.81,1.14 C39.06,0.14 24,0.14 24,0.14 C24,0.14 8.94,0.14 5.19,1.14 C3.16,1.68 1.56,3.28 1.02,5.31 C0,9.06 0,17 0,17 C0,17 0,24.94 1.02,28.69 C1.56,30.72 3.16,32.32 5.19,32.86 C8.94,33.86 24,33.86 24,33.86 C24,33.86 39.06,33.86 42.81,32.86 C44.84,32.32 46.44,30.72 46.98,28.69 C48,24.94 48,17 48,17 C48,17 48,9.06 46.98,5.31 Z" />
+
+    <!-- 白い再生ボタン -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M19,24.5 L19,9.5 L32,17 Z" />
+
+</vector>

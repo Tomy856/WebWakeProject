@@ -8,26 +8,34 @@ import java.util.Calendar
 
 object AlarmScheduler {
 
-    fun schedule(context: Context, alarm: Alarm) {
+    // スケジュールして、実際に設定した最初の発火時刻(ms)を返す
+    fun schedule(context: Context, alarm: Alarm): Long {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // 権限チェック
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) return
+            if (!alarmManager.canScheduleExactAlarms()) return 0L
         }
 
-        if (alarm.repeatDays.isEmpty()) {
+        return if (alarm.repeatDays.isEmpty()) {
             val calendar = Calendar.getInstance().apply {
+                if (alarm.specificDate.isNotEmpty()) {
+                    val parts = alarm.specificDate.split("-")
+                    set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+                }
                 set(Calendar.HOUR_OF_DAY, alarm.hour)
                 set(Calendar.MINUTE, alarm.minute)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-                if (timeInMillis <= System.currentTimeMillis()) {
+                if (alarm.specificDate.isNotEmpty() && timeInMillis <= System.currentTimeMillis()) {
                     add(Calendar.DAY_OF_YEAR, 1)
                 }
             }
             setAlarm(context, alarmManager, alarm, calendar.timeInMillis)
+            calendar.timeInMillis
         } else {
+            // 曜日繰り返し: 最初の発火時刻（最も近い曜日）を返す
+            val now = System.currentTimeMillis()
+            var firstTrigger = Long.MAX_VALUE
             alarm.repeatDays.forEach { dayOfWeek ->
                 val calendar = Calendar.getInstance().apply {
                     set(Calendar.HOUR_OF_DAY, alarm.hour)
@@ -35,12 +43,12 @@ object AlarmScheduler {
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                     set(Calendar.DAY_OF_WEEK, dayOfWeek + 1)
-                    if (timeInMillis <= System.currentTimeMillis()) {
-                        add(Calendar.WEEK_OF_YEAR, 1)
-                    }
+                    if (timeInMillis <= now) add(Calendar.WEEK_OF_YEAR, 1)
                 }
+                if (calendar.timeInMillis < firstTrigger) firstTrigger = calendar.timeInMillis
                 setAlarm(context, alarmManager, alarm, calendar.timeInMillis, dayOfWeek)
             }
+            firstTrigger
         }
     }
 
@@ -73,7 +81,6 @@ object AlarmScheduler {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         try {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         } catch (e: SecurityException) {

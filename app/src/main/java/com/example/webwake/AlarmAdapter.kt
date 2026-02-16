@@ -4,39 +4,48 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.switchmaterial.SwitchMaterial
+import java.util.Calendar
 
 class AlarmAdapter(
     private val alarms: MutableList<Alarm>,
     private val onAlarmClick: (Alarm) -> Unit,
     private val onToggle: (Alarm, Boolean) -> Unit,
-    private val onLongClick: (Alarm) -> Unit
+    private val onLongClick: (Alarm) -> Unit,
+    // 「再度ON」ボタン用: baseMillisを基準に次回発火を計算してスケジュールする
+    private val onReactivate: (Alarm, Long) -> Unit = { alarm, _ -> onToggle(alarm, true) }
 ) : RecyclerView.Adapter<AlarmAdapter.AlarmViewHolder>() {
 
-    // 選択モードかどうか
     var isSelectionMode = false
         private set
 
-    // 選択中のアラームIDセット
     private val selectedIds = mutableSetOf<Long>()
 
     class AlarmViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardView: CardView = itemView.findViewById(R.id.cardView)
-        val checkIcon: ImageView = itemView.findViewById(R.id.checkIcon)
-        val alarmLabel: TextView = itemView.findViewById(R.id.alarmLabel)
-        val alarmPeriod: TextView = itemView.findViewById(R.id.alarmPeriod)
-        val alarmTime: TextView = itemView.findViewById(R.id.alarmTime)
+        val cardView: CardView          = itemView.findViewById(R.id.cardView)
+        val checkIcon: ImageView        = itemView.findViewById(R.id.checkIcon)
+        val alarmLabel: TextView        = itemView.findViewById(R.id.alarmLabel)
+        val labelDivider: TextView      = itemView.findViewById(R.id.labelDivider)
+        val nextRingText: TextView      = itemView.findViewById(R.id.nextRingText)
+        val alarmPeriod: TextView       = itemView.findViewById(R.id.alarmPeriod)
+        val alarmTime: TextView         = itemView.findViewById(R.id.alarmTime)
+        val alarmDateText: TextView     = itemView.findViewById(R.id.alarmDateText)
         val alarmSwitch: SwitchMaterial = itemView.findViewById(R.id.alarmSwitch)
-        val daySunday: TextView = itemView.findViewById(R.id.daySunday)
-        val dayMonday: TextView = itemView.findViewById(R.id.dayMonday)
-        val dayTuesday: TextView = itemView.findViewById(R.id.dayTuesday)
-        val dayWednesday: TextView = itemView.findViewById(R.id.dayWednesday)
-        val dayThursday: TextView = itemView.findViewById(R.id.dayThursday)
-        val dayFriday: TextView = itemView.findViewById(R.id.dayFriday)
-        val daySaturday: TextView = itemView.findViewById(R.id.daySaturday)
+        val daysLayout: LinearLayout    = itemView.findViewById(R.id.daysLayout)
+        val daySunday: TextView         = itemView.findViewById(R.id.daySunday)
+        val dayMonday: TextView         = itemView.findViewById(R.id.dayMonday)
+        val dayTuesday: TextView        = itemView.findViewById(R.id.dayTuesday)
+        val dayWednesday: TextView      = itemView.findViewById(R.id.dayWednesday)
+        val dayThursday: TextView       = itemView.findViewById(R.id.dayThursday)
+        val dayFriday: TextView         = itemView.findViewById(R.id.dayFriday)
+        val daySaturday: TextView       = itemView.findViewById(R.id.daySaturday)
+        val nextOnLayout: LinearLayout  = itemView.findViewById(R.id.nextOnLayout)
+        val nextOnButton: LinearLayout  = itemView.findViewById(R.id.nextOnButton)
+        val nextOnText: TextView        = itemView.findViewById(R.id.nextOnText)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlarmViewHolder {
@@ -49,7 +58,7 @@ class AlarmAdapter(
         val alarm = alarms[position]
         val isSelected = selectedIds.contains(alarm.id)
 
-        // ラベル
+        // ---- ラベル ----
         if (alarm.label.isNotEmpty()) {
             holder.alarmLabel.visibility = View.VISIBLE
             holder.alarmLabel.text = alarm.label
@@ -57,53 +66,133 @@ class AlarmAdapter(
             holder.alarmLabel.visibility = View.GONE
         }
 
-        // 午前/午後
+        // ---- 午前/午後・時刻 ----
         holder.alarmPeriod.text = if (alarm.hour < 12) "午前" else "午後"
-
-        // 時刻
         val displayHour = when {
             alarm.hour == 0 -> 12
             alarm.hour > 12 -> alarm.hour - 12
-            else -> alarm.hour
+            else            -> alarm.hour
         }
         holder.alarmTime.text = String.format("%d:%02d", displayHour, alarm.minute)
 
-        // 曜日の色設定
+        // ---- 曜日 / 日付 / 次回鳴動テキスト ----
         val dayViews = listOf(
             holder.daySunday, holder.dayMonday, holder.dayTuesday,
             holder.dayWednesday, holder.dayThursday, holder.dayFriday, holder.daySaturday
         )
-        val activeColor = 0xFF7B68EE.toInt()
+        val activeColor   = 0xFF7B68EE.toInt()
         val inactiveColor = 0xFF666666.toInt()
-        dayViews.forEachIndexed { index, textView ->
-            textView.setTextColor(if (alarm.repeatDays.contains(index)) activeColor else inactiveColor)
+
+        if (alarm.repeatDays.isNotEmpty()) {
+            val isAllDays = alarm.repeatDays.size == 7
+
+            if (isAllDays) {
+                // 全曜日 → 曜日行を非表示にして「毎日」を日付テキスト欄に表示
+                holder.daysLayout.visibility    = View.GONE
+                holder.alarmDateText.visibility = View.VISIBLE
+                holder.alarmDateText.text       = "毎日"
+            } else {
+                holder.daysLayout.visibility    = View.VISIBLE
+                holder.alarmDateText.visibility = View.GONE
+                dayViews.forEachIndexed { index, tv ->
+                    tv.setTextColor(if (alarm.repeatDays.contains(index)) activeColor else inactiveColor)
+                }
+            }
+
+            if (alarm.isEnabled) {
+                // ON時: 「再度ON」ボタンで起動した時のみラベル横に鳴動情報を表示
+                if (alarm.isReactivated && alarm.lastScheduledMillis > 0L) {
+                    // lastScheduledMillis（「再度ON」でセットした実際の発火時刻）から直接ラベルを作る
+                    val cal = Calendar.getInstance().apply { timeInMillis = alarm.lastScheduledMillis }
+                    val dow = listOf("日","月","火","水","木","金","土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
+                    val now = System.currentTimeMillis()
+                    val oneWeekMillis = 7L * 24 * 60 * 60 * 1000
+                    val label = if (alarm.lastScheduledMillis - now >= oneWeekMillis) {
+                        "${cal.get(Calendar.MONTH) + 1}月${cal.get(Calendar.DAY_OF_MONTH)}日"
+                    } else {
+                        "${dow}曜日"
+                    }
+                    holder.nextRingText.visibility = View.VISIBLE
+                    holder.nextRingText.text       = "アラームは${label}に鳴動"
+                    holder.labelDivider.visibility =
+                        if (alarm.label.isNotEmpty()) View.VISIBLE else View.GONE
+                } else {
+                    // 通常スイッチONはラベル横に何も表示しない
+                    holder.nextRingText.visibility = View.GONE
+                    holder.labelDivider.visibility = View.GONE
+                }
+                holder.nextOnLayout.visibility = View.GONE
+            } else {
+                // OFF時: スイッチで手動OFFにした時のみ「再度ON」ボタンを表示
+                holder.nextRingText.visibility = View.GONE
+                holder.labelDivider.visibility = View.GONE
+                if (alarm.showReactivateButton) {
+                    val (nextLabel, nextMillis) = getNextRingMillis(alarm)
+                    if (nextLabel != null && nextMillis != null) {
+                        holder.nextOnLayout.visibility = View.VISIBLE
+                        holder.nextOnText.text         = "${nextLabel}再度ON"
+                        holder.nextOnButton.setOnClickListener {
+                            onReactivate(alarm, nextMillis)
+                        }
+                    } else {
+                        holder.nextOnLayout.visibility = View.GONE
+                    }
+                } else {
+                    // アプリ起動時やその他のタイミングはボタンを表示しない
+                    holder.nextOnLayout.visibility = View.GONE
+                }
+            }
+        } else if (alarm.specificDate.isNotEmpty()) {
+            holder.daysLayout.visibility    = View.GONE
+            holder.alarmDateText.visibility = View.VISIBLE
+            holder.alarmDateText.text       = formatDate(alarm.specificDate)
+            holder.nextRingText.visibility  = View.GONE
+            holder.labelDivider.visibility  = View.GONE
+            holder.nextOnLayout.visibility  = View.GONE
+        } else {
+            // 何も指定なし → 当日
+            holder.daysLayout.visibility    = View.GONE
+            holder.alarmDateText.visibility = View.VISIBLE
+            holder.nextRingText.visibility  = View.GONE
+            holder.labelDivider.visibility  = View.GONE
+            holder.nextOnLayout.visibility  = View.GONE
+            val cal       = Calendar.getInstance()
+            val month     = cal.get(Calendar.MONTH) + 1
+            val day       = cal.get(Calendar.DAY_OF_MONTH)
+            val dayOfWeek = listOf("日","月","火","水","木","金","土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
+            holder.alarmDateText.text = "${month}月${day}日($dayOfWeek)"
         }
 
-        // 選択モードの表示切り替え
+        // ---- 選択モード ----
         if (isSelectionMode) {
-            holder.checkIcon.visibility = View.VISIBLE
+            holder.checkIcon.visibility  = View.VISIBLE
             holder.alarmSwitch.visibility = View.GONE
             holder.checkIcon.setImageResource(
                 if (isSelected) android.R.drawable.checkbox_on_background
-                else android.R.drawable.checkbox_off_background
+                else            android.R.drawable.checkbox_off_background
             )
             holder.cardView.setCardBackgroundColor(
                 if (isSelected) 0xFF2E2B4A.toInt() else 0xFF1E1E1E.toInt()
             )
         } else {
-            holder.checkIcon.visibility = View.GONE
+            holder.checkIcon.visibility  = View.GONE
             holder.alarmSwitch.visibility = View.VISIBLE
             holder.cardView.setCardBackgroundColor(0xFF1E1E1E.toInt())
 
-            // スイッチ
             holder.alarmSwitch.setOnCheckedChangeListener(null)
             holder.alarmSwitch.isChecked = alarm.isEnabled
+            // スイッチのトラック色: ON=紫, OFF=灰色
+            holder.alarmSwitch.trackTintList = android.content.res.ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                intArrayOf(0xFF7B68EE.toInt(), 0xFF555555.toInt())
+            )
             holder.alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
+                // 曜日あり・日付指定・何も指定なし、全て確認なしで即OFF/ON
                 onToggle(alarm, isChecked)
             }
         }
 
-        // タップ
+        // ---- タップ ----
         holder.itemView.setOnClickListener {
             if (isSelectionMode) {
                 toggleSelection(alarm.id)
@@ -113,7 +202,7 @@ class AlarmAdapter(
             }
         }
 
-        // 長押し
+        // ---- 長押し ----
         holder.itemView.setOnLongClickListener {
             if (!isSelectionMode) {
                 enterSelectionMode()
@@ -127,35 +216,115 @@ class AlarmAdapter(
 
     override fun getItemCount(): Int = alarms.size
 
-    // 選択モード開始
+    // OFF時「再度ON」ボタン用: 表示ラベルと実際の発火時刻(ms)を返す
+    // lastScheduledMillis（次に鳴るはずだった時刻）を基準にその「次」を計算
+    private fun getNextRingMillis(alarm: Alarm): Pair<String?, Long?> {
+        if (alarm.repeatDays.isEmpty()) return Pair(null, null)
+        val now = System.currentTimeMillis()
+        val dayNames = listOf("日","月","火","水","木","金","土")
+        val oneWeekMillis = 7L * 24 * 60 * 60 * 1000
+
+        // base = lastScheduledMillis（必ずOFF時に「次に鳴るはずだった時刻」が入る）
+        val base = if (alarm.lastScheduledMillis > 0L) alarm.lastScheduledMillis else now
+
+        // baseを厳密に超える最初の発火時刻を各曜日から探す
+        val nextEntry = alarm.repeatDays.mapNotNull { dayOfWeek ->
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, alarm.hour)
+                set(Calendar.MINUTE, alarm.minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                set(Calendar.DAY_OF_WEEK, dayOfWeek + 1)
+                // base以前(<=)なら習週に進める → baseを厳密に超える時刻のみ残る
+                if (timeInMillis <= base) add(Calendar.WEEK_OF_YEAR, 1)
+            }
+            Pair(dayOfWeek, cal.timeInMillis)
+        }.minByOrNull { it.second } ?: return Pair(null, null)
+
+        val label = if (nextEntry.second - now >= oneWeekMillis) {
+            val cal   = Calendar.getInstance().apply { timeInMillis = nextEntry.second }
+            "${cal.get(Calendar.MONTH) + 1}月${cal.get(Calendar.DAY_OF_MONTH)}日"
+        } else {
+            "${dayNames[nextEntry.first]}曜日"
+        }
+        return Pair(label, nextEntry.second)
+    }
+
+    // ON時ラベル用: 表示文字列のみ返す
+    // useLastScheduled=false → 現在時刻から次を計算
+    private fun getNextRingInfo(alarm: Alarm, useLastScheduled: Boolean = false): Pair<String?, Boolean> {
+        if (alarm.repeatDays.isEmpty()) return Pair(null, false)
+        val now = System.currentTimeMillis()
+        val dayNames = listOf("日","月","火","水","木","金","土")
+        val oneWeekMillis = 7L * 24 * 60 * 60 * 1000
+
+        // OFF時: lastScheduledMillis = 「次に鳴るはずだった時刻」が入っている
+        // その時刻を基準に「の次」を計算する
+        // useLastScheduled=falseの場合はnow基準
+        val baseMillis = if (useLastScheduled && alarm.lastScheduledMillis > 0L)
+            alarm.lastScheduledMillis  // 必ずOFF時に未来時刻が入っている
+        else
+            now
+
+        val nextEntry = alarm.repeatDays.mapNotNull { dayOfWeek ->
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, alarm.hour)
+                set(Calendar.MINUTE, alarm.minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                set(Calendar.DAY_OF_WEEK, dayOfWeek + 1)
+                // baseMillis以前(小数点以下が引次ぐのを防ぐため厳密に<でなく<=で比較)なら習週に
+                if (timeInMillis <= baseMillis) add(Calendar.WEEK_OF_YEAR, 1)
+            }
+            Pair(dayOfWeek, cal.timeInMillis)
+        }.minByOrNull { it.second } ?: return Pair(null, false)
+
+        val diffMillis = nextEntry.second - now
+        return if (diffMillis >= oneWeekMillis) {
+            // 1週間以上先 → 日付表示
+            val cal   = Calendar.getInstance().apply { timeInMillis = nextEntry.second }
+            val month = cal.get(Calendar.MONTH) + 1
+            val day   = cal.get(Calendar.DAY_OF_MONTH)
+            Pair("${month}月${day}日", true)
+        } else {
+            // 1週間以内 → 曜日名表示
+            Pair("${dayNames[nextEntry.first]}曜日", false)
+        }
+    }
+
     fun enterSelectionMode() {
         isSelectionMode = true
         selectedIds.clear()
     }
 
-    // 選択モード終了
     fun exitSelectionMode() {
         isSelectionMode = false
         selectedIds.clear()
         notifyDataSetChanged()
     }
 
-    // チェック切り替え
     private fun toggleSelection(id: Long) {
-        if (selectedIds.contains(id)) selectedIds.remove(id)
-        else selectedIds.add(id)
+        if (selectedIds.contains(id)) selectedIds.remove(id) else selectedIds.add(id)
     }
 
-    // 選択中のID一覧を返す
     fun getSelectedIds(): Set<Long> = selectedIds.toSet()
-
-    // 選択件数
     fun getSelectedCount(): Int = selectedIds.size
 
-    // 全選択
     fun selectAll() {
         selectedIds.clear()
         alarms.forEach { selectedIds.add(it.id) }
         notifyDataSetChanged()
+    }
+
+    private fun formatDate(dateStr: String): String {
+        return try {
+            val parts = dateStr.split("-")
+            val year  = parts[0].toInt()
+            val month = parts[1].toInt()
+            val day   = parts[2].toInt()
+            val cal   = Calendar.getInstance().apply { set(year, month - 1, day) }
+            val dow   = listOf("日","月","火","水","木","金","土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
+            "${month}月${day}日($dow)"
+        } catch (e: Exception) { dateStr }
     }
 }

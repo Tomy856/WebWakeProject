@@ -1,10 +1,13 @@
 package com.example.webwake
 
 import android.app.DatePickerDialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
@@ -59,6 +62,10 @@ class AlarmSetupActivity : AppCompatActivity() {
         val dayInactiveColor = 0xFF666666.toInt()
 
         timePicker.setIs24HourView(false)
+
+        // 新規作成時のデフォルトは午前６：００
+        timePicker.hour   = 6
+        timePicker.minute = 0
 
         // 編集モードの場合、既存データを反映
         val alarmId = intent.getLongExtra("ALARM_ID", -1)
@@ -117,6 +124,13 @@ class AlarmSetupActivity : AppCompatActivity() {
                 cal.get(Calendar.MONTH),
                 cal.get(Calendar.DAY_OF_MONTH)
             ).show()
+        }
+
+        // YouTubeボタン: ブラウザでYouTubeトップを開くだけ（URL欄は変更しない）
+        val youtubeButton = findViewById<LinearLayout>(R.id.youtubeButton)
+        youtubeButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com"))
+            startActivity(intent)
         }
 
         // キャンセル
