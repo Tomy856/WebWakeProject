@@ -91,6 +91,9 @@ class MainActivity : AppCompatActivity() {
         alarmRecyclerView.adapter = alarmAdapter
 
         addAlarmButton.setOnClickListener { checkPermissionAndOpenSetup() }
+
+        // 必要な権限を確認・リクエスト
+        checkRequiredPermissions()
         cancelSelection.setOnClickListener { exitSelectionMode() }
         selectAllCheck.setOnClickListener {
             alarmAdapter.selectAll()
@@ -301,6 +304,73 @@ class MainActivity : AppCompatActivity() {
         loadAlarms()
     }
 
+    @android.annotation.SuppressLint("NewApi")
+    private fun checkRequiredPermissions() {
+        val sdkInt = android.os.Build.VERSION.SDK_INT
+        android.util.Log.d("Permission", "SDK_INT=$sdkInt")
+
+        // Step1: POST_NOTIFICATIONS (Android 13+)
+        if (sdkInt >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val granted = checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+            android.util.Log.d("Permission", "POST_NOTIFICATIONS granted=$granted")
+            if (granted != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
+                return
+            }
+        }
+
+        // Step2: SCHEDULE_EXACT_ALARM (Android 12+)
+        if (sdkInt >= 31) { // Build.VERSION_CODES.S = 31
+            val alarmManager = getSystemService(ALARM_SERVICE) as android.app.AlarmManager
+            @Suppress("NewApi")
+            val canSchedule = alarmManager.canScheduleExactAlarms()
+            android.util.Log.d("Permission", "canScheduleExactAlarms=$canSchedule")
+            if (!canSchedule) {
+                startActivity(Intent().apply {
+                    action = android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                    data = "package:$packageName".toUri()
+                })
+                return
+            }
+        }
+
+        // Step3: USE_FULL_SCREEN_INTENT (Android 14+)
+        if (sdkInt >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+            val canFullScreen = notificationManager.canUseFullScreenIntent()
+            android.util.Log.d("Permission", "canUseFullScreenIntent=$canFullScreen")
+            if (!canFullScreen) {
+                android.app.AlertDialog.Builder(this)
+                    .setTitle("追加設定が必要です")
+                    .setMessage("アプリを起動していない状態でアラームを有効にするには、設定から「WebWake」の「フルスクリーン通知」を許可する必要があります。")
+                    .setPositiveButton("設定を開く") { _, _ ->
+                        try {
+                            startActivity(
+                                Intent(android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                                    data = "package:$packageName".toUri()
+                                }
+                            )
+                        } catch (e: Exception) {
+                            android.util.Log.e("Permission", "Failed to open settings", e)
+                            // 設定画面が開けない場合はアプリ詳細画面へ
+                            startActivity(
+                                Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = "package:$packageName".toUri()
+                                }
+                            )
+                        }
+                    }
+                    .setNegativeButton("キャンセル", null)
+                    .show()
+            } else {
+                android.util.Log.d("Permission", "All permissions granted!")
+            }
+        } else {
+            android.util.Log.d("Permission", "SDK < 34, no fullscreen intent check needed")
+        }
+    }
+
+    @android.annotation.SuppressLint("NewApi")
     private fun checkPermissionAndOpenSetup(alarmId: Long = -1) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager

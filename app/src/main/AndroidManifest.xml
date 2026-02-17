@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- 端末再起動後にアラームを復元するため -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -36,6 +38,16 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
+        <!-- アラーム発火時にWebViewでURLを表示するActivity -->
+        <activity
+            android:name=".AlarmLaunchActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.WebWakeProject" />
+
         <receiver
             android:name=".AlarmReceiver"
             android:enabled="true"
@@ -45,6 +57,16 @@
             android:name=".AlarmActionReceiver"
             android:enabled="true"
             android:exported="false" />
+
+        <!-- 端末再起動後にアラームを復元するReceiver -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".AlarmService"
