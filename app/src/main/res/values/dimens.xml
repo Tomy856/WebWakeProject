@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ホームバー（ジェスチャーナビゲーション）のための余白 -->
+    <dimen name="home_bar_margin">40dp</dimen>
+    <dimen name="bottom_bar_height">72dp</dimen>
+    <dimen name="bottom_bar_total_height">112dp</dimen> <!-- 72dp + 40dp -->
+</resources>

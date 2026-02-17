@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <!-- 通常モード: タイトルバー -->
     <LinearLayout
@@ -38,7 +40,7 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:paddingBottom="8dp"
-        android:gravity="center"
+            android:gravity="center"
             android:visibility="gone">
 
             <!-- 「XX時間XX分後にアラームが鳴動」 -->
@@ -82,7 +84,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/add_alarm"
                 android:src="@android:drawable/ic_input_add"
-                android:tint="@android:color/white" />
+                app:tint="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/menuButton"
@@ -91,7 +93,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu"
                 android:src="@android:drawable/ic_menu_more"
-                android:tint="@android:color/white" />
+                app:tint="@android:color/white" />
 
         </LinearLayout>
     </LinearLayout>
@@ -164,7 +166,10 @@
             android:id="@+id/alarmRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
             android:clipToPadding="false"
             android:visibility="gone" />
 
@@ -174,10 +179,12 @@
     <LinearLayout
         android:id="@+id/normalBottomBar"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="wrap_content"
         android:background="#111111"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="@dimen/home_bar_margin">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -190,7 +197,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:src="@android:drawable/ic_lock_idle_alarm"
-                android:tint="@android:color/white" />
+                app:tint="@android:color/white" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -208,16 +215,18 @@
     <LinearLayout
         android:id="@+id/selectionBottomBar"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="wrap_content"
         android:background="#111111"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="@dimen/home_bar_margin"
         android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/actionTurnOff"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -227,7 +236,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:src="@android:drawable/ic_lock_idle_alarm"
-                android:tint="#AAAAAA" />
+                app:tint="#AAAAAA" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -242,7 +251,7 @@
         <LinearLayout
             android:id="@+id/actionDelete"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -252,7 +261,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:src="@android:drawable/ic_menu_delete"
-                android:tint="#AAAAAA" />
+                app:tint="#AAAAAA" />
 
             <TextView
                 android:layout_width="wrap_content"

@@ -2,14 +2,26 @@
     <style name="Base.Theme.WebWakeProject" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowContentOverlay">@null</item>
+        <!-- Edge-to-Edge表示を有効化 -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
     </style>
 
     <style name="Theme.WebWakeProject" parent="Base.Theme.WebWakeProject" />
 
-    <!-- TimePickerのテーマ（ダークモード対応） -->
+    <!-- TimePickerのテーマ（スピナーモード） -->
     <style name="TimePickerTheme" parent="ThemeOverlay.AppCompat.Dialog">
+        <!-- 選択中のテキスト色（白） -->
         <item name="android:textColorPrimary">@android:color/white</item>
-        <item name="android:textColorSecondary">@android:color/white</item>
-        <item name="colorAccent">#7B68EE</item>
+        <!-- 非選択のテキスト色（グレー） -->
+        <item name="android:textColorSecondary">#666666</item>
+        <!-- 背景色（黒） -->
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:colorBackgroundFloating">@android:color/black</item>
+        <!-- 区切り線の色（ダークグレー） -->
+        <item name="android:colorControlNormal">#333333</item>
     </style>
 </resources>

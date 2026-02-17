@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <!-- 上部: TimePicker（スピナー形式） -->
     <LinearLayout
@@ -27,7 +29,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3">
+        android:layout_weight="3"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,7 +40,7 @@
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             android:paddingTop="16dp"
-            android:paddingBottom="100dp">
+            android:paddingBottom="16dp">
 
             <!-- 日付表示 + カレンダーアイコン -->
             <LinearLayout
@@ -62,7 +65,7 @@
                     android:layout_height="36dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:tint="#AAAAAA" />
+                    app:tint="#AAAAAA" />
 
             </LinearLayout>
 
@@ -84,7 +87,7 @@
                 <TextView android:id="@+id/daySunday"
                     android:layout_width="0dp" android:layout_height="36dp"
                     android:layout_weight="1" android:gravity="center"
-                    android:text="日" android:textColor="#E05050" android:textSize="15sp" />
+                    android:text="日" android:textColor="#FF5555" android:textSize="15sp" />
 
                 <TextView android:id="@+id/dayMonday"
                     android:layout_width="0dp" android:layout_height="36dp"
@@ -114,7 +117,7 @@
                 <TextView android:id="@+id/daySaturday"
                     android:layout_width="0dp" android:layout_height="36dp"
                     android:layout_weight="1" android:gravity="center"
-                    android:text="土" android:textColor="#5080E0" android:textSize="15sp" />
+                    android:text="土" android:textColor="#55BBFF" android:textSize="15sp" />
 
             </LinearLayout>
 
@@ -261,35 +264,40 @@
     <!-- 下部: キャンセル・保存ボタン（固定） -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:background="#111111"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:background="@android:color/black"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="@dimen/home_bar_margin"
+        android:gravity="center">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/cancelButton"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="48dp"
             android:layout_weight="1"
+            android:layout_marginEnd="8dp"
             android:background="@null"
             android:text="キャンセル"
-            android:textColor="#CCCCCC"
-            android:textSize="16sp" />
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            style="?android:attr/borderlessButtonStyle" />
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="#333333" />
-
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/saveButton"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:background="@null"
+            android:background="@drawable/button_black_bg"
             android:text="保存"
-            android:textColor="#7B68EE"
+            android:textColor="@android:color/white"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>
 

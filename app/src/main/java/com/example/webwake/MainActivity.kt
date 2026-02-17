@@ -13,6 +13,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Calendar
@@ -50,6 +54,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Edge-to-Edgeを有効化
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
         setContentView(R.layout.activity_main)
 
         alarmStorage = AlarmStorage(this)
@@ -91,6 +99,18 @@ class MainActivity : AppCompatActivity() {
         }
         actionTurnOff.setOnClickListener { turnOffSelected() }
         actionDelete.setOnClickListener { deleteSelected() }
+        
+        // バックボタンの処理
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (alarmAdapter.isSelectionMode) {
+                    exitSelectionMode()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     override fun onResume() {
@@ -102,11 +122,6 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(updateCountdownRunnable)
-    }
-
-    override fun onBackPressed() {
-        if (alarmAdapter.isSelectionMode) exitSelectionMode()
-        else super.onBackPressed()
     }
 
     private fun loadAlarms() {

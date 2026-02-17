@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 import java.util.Calendar
 
@@ -28,6 +29,10 @@ class AlarmSetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Edge-to-Edgeを有効化
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
         setContentView(R.layout.activity_alarm_setup)
 
         alarmStorage = AlarmStorage(this)
@@ -51,13 +56,13 @@ class AlarmSetupActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.daySaturday)
         )
         val dayActiveColors = listOf(
-            0xFFE05050.toInt(), // 日: 赤
+            0xFFFF5555.toInt(), // 日: 赤
             0xFFCCCCCC.toInt(), // 月
             0xFFCCCCCC.toInt(), // 火
             0xFFCCCCCC.toInt(), // 水
             0xFFCCCCCC.toInt(), // 木
             0xFFCCCCCC.toInt(), // 金
-            0xFF5080E0.toInt()  // 土: 青
+            0xFF55BBFF.toInt()  // 土: 水色
         )
         val dayInactiveColor = 0xFF666666.toInt()
 
