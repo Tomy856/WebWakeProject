@@ -1,6 +1,7 @@
 package com.example.webwake
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import android.webkit.WebChromeClient
@@ -15,7 +16,6 @@ class AlarmLaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 画面をONにしてロック画面上でも表示
         window.addFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
             WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
@@ -25,24 +25,40 @@ class AlarmLaunchActivity : AppCompatActivity() {
 
         val alarmUrl = intent.getStringExtra("ALARM_URL") ?: ""
         android.util.Log.d("AlarmLaunch", "onCreate URL: $alarmUrl")
-
-        loadUrl(alarmUrl)
+        handleUrl(alarmUrl)
     }
 
-    // 既に起動中のActivityに新しいIntentが来た場合
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val alarmUrl = intent.getStringExtra("ALARM_URL") ?: ""
         android.util.Log.d("AlarmLaunch", "onNewIntent URL: $alarmUrl")
-        loadUrl(alarmUrl)
+        handleUrl(alarmUrl)
     }
 
-    private fun loadUrl(url: String) {
+    private fun handleUrl(url: String) {
         if (url.isEmpty()) {
             finish()
             return
         }
 
+        // 外部ブラウザで開く（全パターン対応）
+        try {
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(browserIntent)
+            android.util.Log.d("AlarmLaunch", "Browser launched: $url")
+        } catch (e: Exception) {
+            android.util.Log.e("AlarmLaunch", "Browser failed, using WebView: ${e.message}")
+            // ブラウザが開けない場合はWebViewにフォールバック
+            loadInWebView(url)
+            return
+        }
+
+        finish()
+    }
+
+    private fun loadInWebView(url: String) {
         val wv = WebView(this).also { wv ->
             wv.settings.apply {
                 javaScriptEnabled = true
@@ -50,21 +66,15 @@ class AlarmLaunchActivity : AppCompatActivity() {
                 mediaPlaybackRequiresUserGesture = false
                 loadWithOverviewMode = true
                 useWideViewPort = true
-                setSupportZoom(true)
-                builtInZoomControls = true
-                displayZoomControls = false
             }
             wv.webViewClient = WebViewClient()
             wv.webChromeClient = WebChromeClient()
             wv.loadUrl(url)
         }
-
         webView = wv
         setContentView(wv)
-        android.util.Log.d("AlarmLaunch", "WebView loading: $url")
     }
 
-    // 戻るボタンでWebViewの履歴を戻る
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (webView?.canGoBack() == true) {
