@@ -226,7 +226,7 @@ class MainActivity : AppCompatActivity() {
         nextAlarmInfo.visibility = View.VISIBLE
         nextAlarmCountdown.text = countdownText
         nextAlarmDate.text = dateText
-        nextAlarmHolidayExclude.visibility = if (alarm.excludeHolidays) View.VISIBLE else View.GONE
+        nextAlarmHolidayExclude.visibility = View.GONE
     }
 
     // 次のトリガー時刻をミリ秒で返す
