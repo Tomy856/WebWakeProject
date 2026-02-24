@@ -68,9 +68,16 @@ class AlarmSetupActivity : AppCompatActivity() {
 
         timePicker.setIs24HourView(false)
 
-        // 新規作成時のデフォルトは午前６：００
+        // TimePickerのスピナーにコロンを追加
+        customizeTimePicker(timePicker)
+
+        // 新規作成時のデフォルト値
         timePicker.hour   = 6
         timePicker.minute = 0
+        urlEditText.setText("https://www.youtube.com")
+
+        // 初期表示を更新
+        updateDateText(timePicker, selectedDateText)
 
         // 編集モードの場合、既存データを反映
         val alarmId = intent.getLongExtra("ALARM_ID", -1)
@@ -97,6 +104,11 @@ class AlarmSetupActivity : AppCompatActivity() {
             updateDayView(tv, index, selectedDays.contains(index), dayActiveColors, dayInactiveColor)
         }
 
+        // TimePickerの値が変わったときに日付テキストを更新
+        timePicker.setOnTimeChangedListener { _, _, _ ->
+            updateDateText(timePicker, selectedDateText)
+        }
+
         // 曜日タップ
         dayViews.forEachIndexed { index, tv ->
             tv.setOnClickListener {
@@ -106,7 +118,7 @@ class AlarmSetupActivity : AppCompatActivity() {
                 // 曜日を選んだら特定日付をクリア
                 if (selectedDays.isNotEmpty()) {
                     specificDate = ""
-                    selectedDateText.text = "繰り返し"
+                    updateDateText(timePicker, selectedDateText)
                 }
             }
         }
@@ -118,12 +130,12 @@ class AlarmSetupActivity : AppCompatActivity() {
                 this,
                 { _, year, month, dayOfMonth ->
                     specificDate = "%04d-%02d-%02d".format(year, month + 1, dayOfMonth)
-                    selectedDateText.text = formatSpecificDate(specificDate)
                     // 特定日付を選んだら曜日繰り返しをクリア
                     selectedDays.clear()
                     dayViews.forEachIndexed { index, tv ->
                         updateDayView(tv, index, false, dayActiveColors, dayInactiveColor)
                     }
+                    updateDateText(timePicker, selectedDateText)
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -147,6 +159,48 @@ class AlarmSetupActivity : AppCompatActivity() {
         }
     }
 
+    // 日付テキストを更新
+    private fun updateDateText(timePicker: TimePicker, textView: TextView) {
+        val now = Calendar.getInstance()
+        val selectedTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, timePicker.hour)
+            set(Calendar.MINUTE, timePicker.minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val dayNames = listOf("日", "月", "火", "水", "木", "金", "土")
+
+        when {
+            // 特定日付が設定されている場合
+            specificDate.isNotEmpty() -> {
+                textView.text = formatSpecificDate(specificDate)
+            }
+            // 曜日が選択されている場合
+            selectedDays.isNotEmpty() -> {
+                if (selectedDays.size == 7) {
+                    textView.text = "毎日"
+                } else {
+                    val dayText = selectedDays.sorted().joinToString(" ") { dayNames[it] }
+                    textView.text = "毎週 $dayText"
+                }
+            }
+            // 曜日も特定日付も未選択（一回限り）
+            else -> {
+                // 現在時刻より過去なら明日、そうでなければ今日
+                val isToday = selectedTime.timeInMillis > now.timeInMillis
+                
+                val targetCal = if (isToday) now else now.apply { add(Calendar.DAY_OF_YEAR, 1) }
+                val month = targetCal.get(Calendar.MONTH) + 1
+                val day = targetCal.get(Calendar.DAY_OF_MONTH)
+                val dayOfWeek = dayNames[targetCal.get(Calendar.DAY_OF_WEEK) - 1]
+                
+                val prefix = if (isToday) "今日" else "明日"
+                textView.text = "${prefix}-${month}月${day}日($dayOfWeek)"
+            }
+        }
+    }
+
     private fun updateDayView(
         tv: TextView,
         index: Int,
@@ -154,11 +208,14 @@ class AlarmSetupActivity : AppCompatActivity() {
         activeColors: List<Int>,
         inactiveColor: Int
     ) {
+        // 色は常に日曜日＝赤、土曜日＝青、その他＝白
+        tv.setTextColor(activeColors[index])
+        
         if (isSelected) {
-            tv.setTextColor(activeColors[index])
+            tv.alpha = 1.0f  // 選択時は不透明
             tv.setBackgroundResource(R.drawable.day_selected_bg)
         } else {
-            tv.setTextColor(inactiveColor)
+            tv.alpha = 0.4f  // 非選択時は半透明
             tv.background = null
         }
     }
@@ -253,6 +310,44 @@ class AlarmSetupActivity : AppCompatActivity() {
         } catch (e: SecurityException) {
             e.printStackTrace()
             Toast.makeText(this, "権限エラー: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // TimePickerのスピナー間にコロンを挿入
+    private fun customizeTimePicker(timePicker: TimePicker) {
+        try {
+            val timePickerLayout = timePicker.getChildAt(0) as? android.view.ViewGroup ?: return
+            
+            // Child 1がLinearLayoutで、その中に時・分のスピナーがある
+            val spinnersLayout = timePickerLayout.getChildAt(1) as? android.view.ViewGroup ?: return
+            
+            android.util.Log.d("AlarmSetup", "Spinners layout children: ${spinnersLayout.childCount}")
+            for (i in 0 until spinnersLayout.childCount) {
+                val child = spinnersLayout.getChildAt(i)
+                android.util.Log.d("AlarmSetup", "Spinner child $i: ${child.javaClass.simpleName}")
+            }
+            
+            // コロン用TextViewを作成
+            val colonView = TextView(this).apply {
+                text = ":"
+                textSize = 32f
+                setTextColor(0xFFFFFFFF.toInt())
+                gravity = android.view.Gravity.CENTER
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+            }
+
+            // 時スピナー(0)と分スピナー(1)の間にコロンを挿入
+            if (spinnersLayout.childCount >= 2) {
+                spinnersLayout.addView(colonView, 1)
+                android.util.Log.d("AlarmSetup", "Colon inserted between hour and minute")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AlarmSetup", "Failed to customize TimePicker: ${e.message}", e)
         }
     }
 }

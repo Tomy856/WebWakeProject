@@ -51,7 +51,7 @@
                 android:gravity="center"
                 android:text="12時間45分後に\nアラームが鳴動"
                 android:textColor="@android:color/white"
-                android:textSize="26sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:lineSpacingMultiplier="1.1" />
 
@@ -60,11 +60,23 @@
                 android:id="@+id/nextAlarmDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="2月14日(土) 午前6:00"
                 android:textColor="#AAAAAA"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
+
+            <!-- 祝日を除く表示 -->
+            <TextView
+                android:id="@+id/nextAlarmHolidayExclude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:text="祝日を除く"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
         </LinearLayout>
 

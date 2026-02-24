@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nextAlarmInfo: LinearLayout
     private lateinit var nextAlarmCountdown: TextView
     private lateinit var nextAlarmDate: TextView
+    private lateinit var nextAlarmHolidayExclude: TextView
     private lateinit var alarmAdapter: AlarmAdapter
     private lateinit var alarmStorage: AlarmStorage
     private val alarmList = mutableListOf<Alarm>()
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         nextAlarmInfo = findViewById(R.id.nextAlarmInfo)
         nextAlarmCountdown = findViewById(R.id.nextAlarmCountdown)
         nextAlarmDate = findViewById(R.id.nextAlarmDate)
+        nextAlarmHolidayExclude = findViewById(R.id.nextAlarmHolidayExclude)
 
         alarmAdapter = AlarmAdapter(
             alarmList,
@@ -213,9 +215,10 @@ class MainActivity : AppCompatActivity() {
         val dayOfWeek = listOf("日", "月", "火", "水", "木", "金", "土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
         val period = if (alarm.hour < 12) "午前" else "午後"
         val displayHour = when {
-            alarm.hour == 0 -> 12
-            alarm.hour > 12 -> alarm.hour - 12
-            else -> alarm.hour
+            alarm.hour == 0  -> 0   // 午前0時 → 0時
+            alarm.hour == 12 -> 0   // 午後12時 → 0時
+            alarm.hour > 12  -> alarm.hour - 12
+            else             -> alarm.hour
         }
         val dateText = "${month}月${day}日(${dayOfWeek}) ${period}${displayHour}:${String.format("%02d", alarm.minute)}"
 
@@ -223,6 +226,7 @@ class MainActivity : AppCompatActivity() {
         nextAlarmInfo.visibility = View.VISIBLE
         nextAlarmCountdown.text = countdownText
         nextAlarmDate.text = dateText
+        nextAlarmHolidayExclude.visibility = if (alarm.excludeHolidays) View.VISIBLE else View.GONE
     }
 
     // 次のトリガー時刻をミリ秒で返す

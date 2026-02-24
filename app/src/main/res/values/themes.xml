@@ -31,5 +31,7 @@
         <item name="android:colorBackgroundFloating">@android:color/black</item>
         <!-- 区切り線の色（ダークグレー） -->
         <item name="android:colorControlNormal">#333333</item>
+        <!-- テキストサイズを大きく -->
+        <item name="android:textSize">28sp</item>
     </style>
 </resources>

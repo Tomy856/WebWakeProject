@@ -15,7 +15,7 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- 上部: チェックアイコン＋ラベル＋次回鳴動テキスト -->
+        <!-- 上部: チェックアイコン＋ラベル＋祝日を除く（左詰め） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,75 +30,137 @@
                 android:src="@android:drawable/checkbox_off_background"
                 android:visibility="gone" />
 
-            <!-- ラベル -->
             <TextView
                 android:id="@+id/alarmLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#AAAAAA"
-                android:textSize="14sp" />
+                android:textSize="13sp"
+                android:visibility="gone" />
 
-            <!-- 区切り「|」ラベルと次回鳴動の間 -->
             <TextView
                 android:id="@+id/labelDivider"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" | "
                 android:textColor="#555555"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:visibility="gone" />
 
-            <!-- 次回鳴動テキスト（ON時・曜日ありのみ表示） -->
+            <TextView
+                android:id="@+id/excludeHolidaysText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="祝日を除く"
+                android:textColor="#AAAAAA"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/nextRingText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:textColor="#666666"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:visibility="gone" />
 
         </LinearLayout>
 
-        <!-- 中部: 時刻・日付情報・スイッチ -->
+        <!-- 中部: [午前/午後] [時刻] [Space(伸縮)] [日付 or 曜日] [スイッチ] -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- 午前/午後 -->
             <TextView
                 android:id="@+id/alarmPeriod"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="午前"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <Space
-                android:layout_width="8dp"
+                android:layout_width="6dp"
                 android:layout_height="1dp" />
 
+            <!-- 時刻 -->
             <TextView
                 android:id="@+id/alarmTime"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="6:00"
                 android:textColor="#FFFFFF"
-                android:textSize="48sp" />
+                android:textSize="36sp" />
 
+            <!-- スペーサー（時刻と日付/曜日の間を伸縮） -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- 曜日行（スイッチのすぐ左） -->
+            <LinearLayout
+                android:id="@+id/daysLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView android:id="@+id/daySunday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="日" />
+
+                <TextView android:id="@+id/dayMonday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="月" />
+
+                <TextView android:id="@+id/dayTuesday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="火" />
+
+                <TextView android:id="@+id/dayWednesday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="水" />
+
+                <TextView android:id="@+id/dayThursday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="木" />
+
+                <TextView android:id="@+id/dayFriday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#666666" android:textSize="12sp" android:text="金" />
+
+                <TextView android:id="@+id/daySaturday"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#666666" android:textSize="12sp" android:text="土" />
+
+            </LinearLayout>
+
+            <!-- 日付テキスト（スイッチのすぐ左） -->
             <TextView
                 android:id="@+id/alarmDateText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="12dp"
-                android:gravity="center"
                 android:textColor="#7B68EE"
                 android:textSize="13sp"
                 android:visibility="gone" />
 
+            <!-- スイッチ（右端固定） -->
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/alarmSwitch"
                 android:layout_width="wrap_content"
@@ -109,61 +171,7 @@
 
         </LinearLayout>
 
-        <!-- 曜日行 -->
-        <LinearLayout
-            android:id="@+id/daysLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <TextView android:id="@+id/daySunday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="日" />
-
-            <TextView android:id="@+id/dayMonday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="月" />
-
-            <TextView android:id="@+id/dayTuesday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="火" />
-
-            <TextView android:id="@+id/dayWednesday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="水" />
-
-            <TextView android:id="@+id/dayThursday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="木" />
-
-            <TextView android:id="@+id/dayFriday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="金" />
-
-            <TextView android:id="@+id/daySaturday"
-                android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:gravity="center"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:textColor="#666666" android:textSize="14sp" android:text="土" />
-
-        </LinearLayout>
-
-        <!-- OFF時: 次回ON予定ボタン（「🕐 2月22日再度ON」） -->
+        <!-- OFF時: 次回ON予定ボタン -->
         <LinearLayout
             android:id="@+id/nextOnLayout"
             android:layout_width="match_parent"

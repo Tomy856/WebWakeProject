@@ -28,6 +28,7 @@ class AlarmAdapter(
     class AlarmViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: CardView          = itemView.findViewById(R.id.cardView)
         val checkIcon: ImageView        = itemView.findViewById(R.id.checkIcon)
+        val excludeHolidaysText: TextView = itemView.findViewById(R.id.excludeHolidaysText)
         val alarmLabel: TextView        = itemView.findViewById(R.id.alarmLabel)
         val labelDivider: TextView      = itemView.findViewById(R.id.labelDivider)
         val nextRingText: TextView      = itemView.findViewById(R.id.nextRingText)
@@ -58,20 +59,30 @@ class AlarmAdapter(
         val alarm = alarms[position]
         val isSelected = selectedIds.contains(alarm.id)
 
-        // ---- ラベル ----
+        // ---- ラベル・祝日を除く（左詰め、ラベル優先） ----
+        // 表示パターン:
+        //   ラベルあり + 祝日除く →「ラベル名 | 祝日を除く」
+        //   ラベルあり のみ       →「ラベル名」
+        //   祝日除く のみ         → 「祝日を除く」
+        //   どちらもなし          → 何も表示しない
         if (alarm.label.isNotEmpty()) {
             holder.alarmLabel.visibility = View.VISIBLE
             holder.alarmLabel.text = alarm.label
         } else {
             holder.alarmLabel.visibility = View.GONE
         }
+        // ラベルと祝日除くが両方ある時だけ区切りを表示
+        holder.labelDivider.visibility =
+            if (alarm.label.isNotEmpty() && alarm.excludeHolidays) View.VISIBLE else View.GONE
+        holder.excludeHolidaysText.visibility = if (alarm.excludeHolidays) View.VISIBLE else View.GONE
 
         // ---- 午前/午後・時刻 ----
         holder.alarmPeriod.text = if (alarm.hour < 12) "午前" else "午後"
         val displayHour = when {
-            alarm.hour == 0 -> 12
-            alarm.hour > 12 -> alarm.hour - 12
-            else            -> alarm.hour
+            alarm.hour == 0  -> 0   // 午前0時 → 0時
+            alarm.hour == 12 -> 0   // 午後12時 → 0時
+            alarm.hour > 12  -> alarm.hour - 12
+            else             -> alarm.hour
         }
         holder.alarmTime.text = String.format("%d:%02d", displayHour, alarm.minute)
 
@@ -114,18 +125,14 @@ class AlarmAdapter(
                     }
                     holder.nextRingText.visibility = View.VISIBLE
                     holder.nextRingText.text       = "アラームは${label}に鳴動"
-                    holder.labelDivider.visibility =
-                        if (alarm.label.isNotEmpty()) View.VISIBLE else View.GONE
                 } else {
-                    // 通常スイッチONはラベル横に何も表示しない
+                    // 通常スイッチONはnextRingTextを非表示
                     holder.nextRingText.visibility = View.GONE
-                    holder.labelDivider.visibility = View.GONE
                 }
                 holder.nextOnLayout.visibility = View.GONE
             } else {
                 // OFF時: スイッチで手動OFFにした時のみ「再度ON」ボタンを表示
                 holder.nextRingText.visibility = View.GONE
-                holder.labelDivider.visibility = View.GONE
                 if (alarm.showReactivateButton) {
                     val (nextLabel, nextMillis) = getNextRingMillis(alarm)
                     if (nextLabel != null && nextMillis != null) {
@@ -147,14 +154,12 @@ class AlarmAdapter(
             holder.alarmDateText.visibility = View.VISIBLE
             holder.alarmDateText.text       = formatDate(alarm.specificDate)
             holder.nextRingText.visibility  = View.GONE
-            holder.labelDivider.visibility  = View.GONE
             holder.nextOnLayout.visibility  = View.GONE
         } else {
             // 何も指定なし → 当日
             holder.daysLayout.visibility    = View.GONE
             holder.alarmDateText.visibility = View.VISIBLE
             holder.nextRingText.visibility  = View.GONE
-            holder.labelDivider.visibility  = View.GONE
             holder.nextOnLayout.visibility  = View.GONE
             val cal       = Calendar.getInstance()
             val month     = cal.get(Calendar.MONTH) + 1
