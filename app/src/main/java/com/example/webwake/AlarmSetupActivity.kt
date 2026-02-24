@@ -311,38 +311,41 @@ class AlarmSetupActivity : AppCompatActivity() {
         }
     }
 
-    // TimePickerのスピナー間にコロンを挿入
+    // TimePickerのスピナー間のコロンを整理（既存コロンを使い回す）
     private fun customizeTimePicker(timePicker: TimePicker) {
         try {
             val timePickerLayout = timePicker.getChildAt(0) as? android.view.ViewGroup ?: return
-            
-            // Child 1がLinearLayoutで、その中に時・分のスピナーがある
             val spinnersLayout = timePickerLayout.getChildAt(1) as? android.view.ViewGroup ?: return
-            
-            android.util.Log.d("AlarmSetup", "Spinners layout children: ${spinnersLayout.childCount}")
+
+            // 既存の子ビューをすべて調べて TextView（コロン候補）を探す
+            // 実機では既にコロンのTextViewが含まれている場合がある
+            var existingColon: TextView? = null
             for (i in 0 until spinnersLayout.childCount) {
                 val child = spinnersLayout.getChildAt(i)
-                android.util.Log.d("AlarmSetup", "Spinner child $i: ${child.javaClass.simpleName}")
-            }
-            
-            // コロン用TextViewを作成
-            val colonView = TextView(this).apply {
-                text = ":"
-                textSize = 32f
-                setTextColor(0xFFFFFFFF.toInt())
-                gravity = android.view.Gravity.CENTER
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT
-                ).apply {
-                    gravity = android.view.Gravity.CENTER
+                if (child is TextView) {
+                    // 既存コロンを見つけたらスタイルだけ上書きして使い回す
+                    child.text = ":"
+                    child.textSize = 32f
+                    child.setTextColor(0xFFFFFFFF.toInt())
+                    child.gravity = android.view.Gravity.CENTER
+                    existingColon = child
+                    break
                 }
             }
 
-            // 時スピナー(0)と分スピナー(1)の間にコロンを挿入
-            if (spinnersLayout.childCount >= 2) {
+            // 既存コロンがなかった場合のみ新規追加
+            if (existingColon == null && spinnersLayout.childCount >= 2) {
+                val colonView = TextView(this).apply {
+                    text = ":"
+                    textSize = 32f
+                    setTextColor(0xFFFFFFFF.toInt())
+                    gravity = android.view.Gravity.CENTER
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT
+                    ).apply { gravity = android.view.Gravity.CENTER }
+                }
                 spinnersLayout.addView(colonView, 1)
-                android.util.Log.d("AlarmSetup", "Colon inserted between hour and minute")
             }
         } catch (e: Exception) {
             android.util.Log.e("AlarmSetup", "Failed to customize TimePicker: ${e.message}", e)

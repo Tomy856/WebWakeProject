@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-02-18T03:03:22.385762Z">
-          <Target type="COLD_BOOT">
+        <DropdownSelection timestamp="2026-02-24T08:20:07.021191200Z">
+          <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\tomida-t\.android\avd\Galaxy_S23.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\tomida-t\.android\avd\Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>

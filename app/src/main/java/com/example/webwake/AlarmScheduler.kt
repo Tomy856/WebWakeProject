@@ -26,7 +26,8 @@ object AlarmScheduler {
                 set(Calendar.MINUTE, alarm.minute)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-                if (alarm.specificDate.isNotEmpty() && timeInMillis <= System.currentTimeMillis()) {
+                // specificDateありなしにかかわらず、設定時刻が現在以前なら習日へ
+                if (timeInMillis <= System.currentTimeMillis()) {
                     add(Calendar.DAY_OF_YEAR, 1)
                 }
             }

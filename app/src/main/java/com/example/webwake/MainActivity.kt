@@ -240,6 +240,11 @@ class MainActivity : AppCompatActivity() {
 
         return if (alarm.repeatDays.isEmpty()) {
             Calendar.getInstance().apply {
+                // specificDate が設定されている場合はその日付を使う
+                if (alarm.specificDate.isNotEmpty()) {
+                    val parts = alarm.specificDate.split("-")
+                    set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+                }
                 set(Calendar.HOUR_OF_DAY, alarm.hour)
                 set(Calendar.MINUTE, alarm.minute)
                 set(Calendar.SECOND, 0)

@@ -169,12 +169,19 @@ class AlarmAdapter(
             holder.nextRingText.visibility  = View.GONE
             holder.nextOnLayout.visibility  = View.GONE
         } else {
-            // 何も指定なし → 当日
+            // 何も指定なし → 設定時刻が現在以前なら習日、これからなら当日
             holder.daysLayout.visibility    = View.GONE
             holder.alarmDateText.visibility = View.VISIBLE
             holder.nextRingText.visibility  = View.GONE
             holder.nextOnLayout.visibility  = View.GONE
-            val cal       = Calendar.getInstance()
+            val now = System.currentTimeMillis()
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, alarm.hour)
+                set(Calendar.MINUTE, alarm.minute)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+                if (timeInMillis <= now) add(Calendar.DAY_OF_YEAR, 1)
+            }
             val month     = cal.get(Calendar.MONTH) + 1
             val day       = cal.get(Calendar.DAY_OF_MONTH)
             val dayOfWeek = listOf("日","月","火","水","木","金","土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
