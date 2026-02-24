@@ -98,55 +98,153 @@
                 android:textColor="#FFFFFF"
                 android:textSize="36sp" />
 
-            <!-- スペーサー（時刻と日付/曜日の間を伸縮） -->
+            <!-- スペーサー -->
             <Space
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
-            <!-- 曜日行（スイッチのすぐ左） -->
+            <!-- 曜日行（各曜日に●インジケーター付き） -->
             <LinearLayout
                 android:id="@+id/daysLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
+                android:layout_marginEnd="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:visibility="gone">
 
-                <TextView android:id="@+id/daySunday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="日" />
+                <!-- 日 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotSunday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/daySunday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="日" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/dayMonday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="月" />
+                <!-- 月 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotMonday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/dayMonday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="月" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/dayTuesday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="火" />
+                <!-- 火 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotTuesday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/dayTuesday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="火" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/dayWednesday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="水" />
+                <!-- 水 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotWednesday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/dayWednesday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="水" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/dayThursday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="木" />
+                <!-- 木 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotThursday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/dayThursday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="木" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/dayFriday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:textColor="#666666" android:textSize="12sp" android:text="金" />
+                <!-- 金 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotFriday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/dayFriday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="金" />
+                </LinearLayout>
 
-                <TextView android:id="@+id/daySaturday"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:textColor="#666666" android:textSize="12sp" android:text="土" />
+                <!-- 土 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+                    <View
+                        android:id="@+id/dotSaturday"
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:background="@drawable/dot_active"
+                        android:visibility="invisible" />
+                    <TextView android:id="@+id/daySaturday"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="#666666" android:textSize="11sp" android:text="土" />
+                </LinearLayout>
 
             </LinearLayout>
 

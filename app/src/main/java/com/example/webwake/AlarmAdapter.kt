@@ -44,6 +44,13 @@ class AlarmAdapter(
         val dayThursday: TextView       = itemView.findViewById(R.id.dayThursday)
         val dayFriday: TextView         = itemView.findViewById(R.id.dayFriday)
         val daySaturday: TextView       = itemView.findViewById(R.id.daySaturday)
+        val dotSunday: View             = itemView.findViewById(R.id.dotSunday)
+        val dotMonday: View             = itemView.findViewById(R.id.dotMonday)
+        val dotTuesday: View            = itemView.findViewById(R.id.dotTuesday)
+        val dotWednesday: View          = itemView.findViewById(R.id.dotWednesday)
+        val dotThursday: View           = itemView.findViewById(R.id.dotThursday)
+        val dotFriday: View             = itemView.findViewById(R.id.dotFriday)
+        val dotSaturday: View           = itemView.findViewById(R.id.dotSaturday)
         val nextOnLayout: LinearLayout  = itemView.findViewById(R.id.nextOnLayout)
         val nextOnButton: LinearLayout  = itemView.findViewById(R.id.nextOnButton)
         val nextOnText: TextView        = itemView.findViewById(R.id.nextOnText)
@@ -91,6 +98,10 @@ class AlarmAdapter(
             holder.daySunday, holder.dayMonday, holder.dayTuesday,
             holder.dayWednesday, holder.dayThursday, holder.dayFriday, holder.daySaturday
         )
+        val dotViews = listOf(
+            holder.dotSunday, holder.dotMonday, holder.dotTuesday,
+            holder.dotWednesday, holder.dotThursday, holder.dotFriday, holder.dotSaturday
+        )
         val activeColor   = 0xFF7B68EE.toInt()
         val inactiveColor = 0xFF666666.toInt()
 
@@ -106,7 +117,9 @@ class AlarmAdapter(
                 holder.daysLayout.visibility    = View.VISIBLE
                 holder.alarmDateText.visibility = View.GONE
                 dayViews.forEachIndexed { index, tv ->
-                    tv.setTextColor(if (alarm.repeatDays.contains(index)) activeColor else inactiveColor)
+                    val active = alarm.repeatDays.contains(index)
+                    tv.setTextColor(if (active) activeColor else inactiveColor)
+                    dotViews[index].visibility = if (active) View.VISIBLE else View.INVISIBLE
                 }
             }
 

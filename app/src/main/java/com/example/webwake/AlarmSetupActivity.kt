@@ -92,10 +92,8 @@ class AlarmSetupActivity : AppCompatActivity() {
                 specificDate = alarm.specificDate
                 selectedDays.addAll(alarm.repeatDays)
 
-                // 日付テキスト更新
-                if (specificDate.isNotEmpty()) {
-                    selectedDateText.text = formatSpecificDate(specificDate)
-                }
+                // 日付テキスト更新（曜日・特定日付を反映）
+                updateDateText(timePicker, selectedDateText)
             }
         }
 
