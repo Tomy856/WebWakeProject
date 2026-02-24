@@ -103,6 +103,9 @@ class AlarmLaunchActivity : AppCompatActivity() {
             return
         }
 
+        // ブラウザを開く前にRingerServiceを停止
+        stopService(Intent(this, AlarmRingerService::class.java))
+
         try {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(alarmUrl)).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
