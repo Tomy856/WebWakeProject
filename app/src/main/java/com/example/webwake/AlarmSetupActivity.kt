@@ -315,7 +315,53 @@ class AlarmSetupActivity : AppCompatActivity() {
 
         try {
             AlarmScheduler.schedule(this, alarm)
-            Toast.makeText(this, "${hour}時${minute}分にアラームをセットしました", Toast.LENGTH_SHORT).show()
+            // 現在時刻からアラームまでの残り時間を計算
+            val now = System.currentTimeMillis()
+            val nextTrigger = if (selectedDays.isEmpty() && specificDate.isEmpty()) {
+                // 一回限り: 今日か明日
+                java.util.Calendar.getInstance().apply {
+                    set(java.util.Calendar.HOUR_OF_DAY, hour)
+                    set(java.util.Calendar.MINUTE, minute)
+                    set(java.util.Calendar.SECOND, 0)
+                    set(java.util.Calendar.MILLISECOND, 0)
+                    if (timeInMillis <= now) add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }.timeInMillis
+            } else if (specificDate.isNotEmpty()) {
+                // 特定日付
+                val parts = specificDate.split("-")
+                java.util.Calendar.getInstance().apply {
+                    set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt(),
+                        hour, minute, 0)
+                    set(java.util.Calendar.MILLISECOND, 0)
+                }.timeInMillis
+            } else {
+                // 曜日繰り返し: 一番近い発火時刻
+                selectedDays.mapNotNull { dow ->
+                    java.util.Calendar.getInstance().apply {
+                        set(java.util.Calendar.HOUR_OF_DAY, hour)
+                        set(java.util.Calendar.MINUTE, minute)
+                        set(java.util.Calendar.SECOND, 0)
+                        set(java.util.Calendar.MILLISECOND, 0)
+                        set(java.util.Calendar.DAY_OF_WEEK, dow + 1)
+                        if (timeInMillis <= now) add(java.util.Calendar.WEEK_OF_YEAR, 1)
+                    }.timeInMillis
+                }.minOrNull() ?: now
+            }
+            val diffMin = ((nextTrigger - now) / 1000 / 60).toInt()
+            val days    = diffMin / (60 * 24)
+            val hours   = (diffMin % (60 * 24)) / 60
+            val mins    = diffMin % 60
+            val message = when {
+                diffMin < 1       -> "まもなくアラームが鳴ります"
+                days > 0 && hours == 0 && mins == 0 -> "${days}日後にアラームが鳴ります"
+                days > 0 && hours == 0 -> "${days}日${mins}分後にアラームが鳴ります"
+                days > 0 && mins == 0  -> "${days}日${hours}時間後にアラームが鳴ります"
+                days > 0               -> "${days}日${hours}時間${mins}分後にアラームが鳴ります"
+                hours > 0 && mins == 0 -> "${hours}時間後にアラームが鳴ります"
+                hours > 0              -> "${hours}時間${mins}分後にアラームが鳴ります"
+                else                   -> "${mins}分後にアラームが鳴ります"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
             // YouTubeの共有から起動した場合は、YouTubeも閉じてMainActivityに戻る
             if (intent?.action == Intent.ACTION_SEND) {
