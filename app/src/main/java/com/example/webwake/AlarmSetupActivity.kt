@@ -1,5 +1,6 @@
 package com.example.webwake
 
+import android.app.ActivityManager
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
@@ -71,10 +72,21 @@ class AlarmSetupActivity : AppCompatActivity() {
         // TimePickerのスピナーにコロンを追加
         customizeTimePicker(timePicker)
 
+        // 共有Intent（YouTubeなど）からURLを受け取る
+        val sharedUrl: String? = if (intent?.action == Intent.ACTION_SEND &&
+            intent.type == "text/plain") {
+            intent.getStringExtra(Intent.EXTRA_TEXT)
+                ?.let { text ->
+                    // YouTubeの共有テキストは「タイトル https://youtu.be/xxx」の形式なので
+                    // URLだけを抽出する
+                    Regex("https?://\\S+").find(text)?.value
+                }
+        } else null
+
         // 新規作成時のデフォルト値
         timePicker.hour   = 6
         timePicker.minute = 0
-        urlEditText.setText("https://www.youtube.com")
+        urlEditText.setText(sharedUrl ?: "https://www.youtube.com")
 
         // 初期表示を更新
         updateDateText(timePicker, selectedDateText)
@@ -304,7 +316,28 @@ class AlarmSetupActivity : AppCompatActivity() {
         try {
             AlarmScheduler.schedule(this, alarm)
             Toast.makeText(this, "${hour}時${minute}分にアラームをセットしました", Toast.LENGTH_SHORT).show()
-            finish()
+
+            // YouTubeの共有から起動した場合は、YouTubeも閉じてMainActivityに戻る
+            if (intent?.action == Intent.ACTION_SEND) {
+                // YouTubeのタスクをOverviewから除去する
+                val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                am.appTasks.forEach { task ->
+                    val info = task.taskInfo
+                    val pkg = info.baseActivity?.packageName ?: ""
+                    // 自分以外のタスク（YouTube等）をOverviewから除去
+                    if (pkg != packageName) {
+                        task.finishAndRemoveTask()
+                    }
+                }
+                // 自分のタスクをOverviewから消してからMainActivityへ
+                finishAndRemoveTask()
+                val mainIntent = Intent(this, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                }
+                startActivity(mainIntent)
+            } else {
+                finish()
+            }
         } catch (e: SecurityException) {
             e.printStackTrace()
             Toast.makeText(this, "権限エラー: ${e.message}", Toast.LENGTH_LONG).show()
