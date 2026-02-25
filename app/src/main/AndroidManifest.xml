@@ -48,6 +48,16 @@
             android:excludeFromRecents="true"
             android:theme="@style/Theme.WebWakeProject" />
 
+        <!-- アラーム発火時のロック画面オーバーレイ -->
+        <activity
+            android:name=".AlarmOverlayActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
         <receiver
             android:name=".AlarmReceiver"
             android:enabled="true"

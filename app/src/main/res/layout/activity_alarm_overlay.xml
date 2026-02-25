@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000">
+
+    <!-- 時刻 -->
+    <TextClock
+        android:id="@+id/clockHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format24Hour="HH"
+        android:format12Hour="hh"
+        android:textColor="#FFFFFF"
+        android:textSize="80sp"
+        android:fontFamily="sans-serif-light"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="80dp" />
+
+    <TextClock
+        android:id="@+id/clockMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format24Hour="mm"
+        android:format12Hour="mm"
+        android:textColor="#FFFFFF"
+        android:textSize="80sp"
+        android:fontFamily="sans-serif-light"
+        app:layout_constraintTop_toBottomOf="@id/clockHour"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 日付 -->
+    <TextClock
+        android:id="@+id/clockDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format24Hour="M月d日(EEE)"
+        android:format12Hour="M月d日(EEE)"
+        android:textColor="#CCFFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/clockMinute"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- "アラーム" ラベル -->
+    <TextView
+        android:id="@+id/alarmLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="アラーム"
+        android:textColor="#CCFFFFFF"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/clockDate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="6dp" />
+
+    <!-- × 停止ボタン（中央） -->
+    <FrameLayout
+        android:id="@+id/stopButton"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/circle_button_bg"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="120dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="×"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp" />
+    </FrameLayout>
+
+    <!-- 説明テキスト -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="タップしてURLを開く"
+        android:textColor="#AAFFFFFF"
+        android:textSize="13sp"
+        app:layout_constraintTop_toBottomOf="@id/stopButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

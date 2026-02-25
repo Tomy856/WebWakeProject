@@ -26,6 +26,7 @@ class AlarmRingerService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -61,35 +62,43 @@ class AlarmRingerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // フォアグラウンド通知（サウンド・バイブは通知チャンネルで完全無効化済み）
+        // WakeLockで画面を強制点灯
+        val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        @Suppress("DEPRECATION")
+        wakeLock = pm.newWakeLock(
+            android.os.PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+            android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP,
+            "webwake:alarmwakelock"
+        ).also { it.acquire(60_000L) }
+
+        // AlarmOverlayActivity を fullScreenIntent で起動（Android公式の画面OFF→Activity表示の方法）
+        val overlayIntent = Intent(this, AlarmOverlayActivity::class.java).apply {
+            putExtra("ALARM_ID", alarmId)
+            putExtra("ALARM_URL", alarmUrl)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        val overlayPi = PendingIntent.getActivity(
+            this, (alarmId + 100).toInt(), overlayIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle("⏰ アラーム")
             .setContentText("タップしてURLを開く")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
             .setSound(null)
-            .setVibrate(longArrayOf(0L))   // バイブ無効（0ms=実質なし）
-            .setContentIntent(launchPi)
+            .setVibrate(longArrayOf(0L))
+            .setContentIntent(overlayPi)
+            .setFullScreenIntent(overlayPi, true)  // 画面OFFから直接Activityを起動する公式手段
             .addAction(android.R.drawable.ic_delete, "⏹ 停止", stopPi)
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
-
-        // 画面を起こしてロック画面に通知を見せる
-        val launchIntent = Intent(this, AlarmLaunchActivity::class.java).apply {
-            putExtra("ALARM_ID", alarmId)
-            putExtra("ALARM_URL", alarmUrl)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        }
-        try {
-            startActivity(launchIntent)
-        } catch (e: Exception) {
-            android.util.Log.e("AlarmRinger", "startActivity failed: ${e.message}")
-        }
 
         startRinging()
 
@@ -179,6 +188,8 @@ class AlarmRingerService : Service() {
         mediaPlayer = null
         vibrator?.cancel()
         vibrator = null
+        if (wakeLock?.isHeld == true) wakeLock?.release()
+        wakeLock = null
     }
 
     private fun createNotificationChannel() {
