@@ -61,17 +61,74 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="6dp" />
 
-    <!-- リップルアニメーション用（内側円より後ろ・はみ出し可能） -->
-    <View
-        android:id="@+id/rippleView"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:background="@drawable/circle_button_outer"
-        android:alpha="0"
+    <!-- スヌーズバー（一番下に固定） -->
+    <LinearLayout
+        android:id="@+id/snoozeBar"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="100dp" />
+        android:layout_marginBottom="32dp"
+        android:clipChildren="false">
+
+        <!-- － ボタン -->
+        <FrameLayout
+            android:id="@+id/snoozeDecrease"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/snooze_button_bg"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="－"
+                android:textColor="#AAFFFFFF"
+                android:textSize="20sp" />
+        </FrameLayout>
+
+        <!-- スヌーズ時間ラベル -->
+        <FrameLayout
+            android:id="@+id/snoozeCenter"
+            android:layout_width="160dp"
+            android:layout_height="52dp"
+            android:background="@drawable/snooze_center_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp">
+            <TextView
+                android:id="@+id/snoozeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="スヌーズ：5分"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+        </FrameLayout>
+
+        <!-- ＋ ボタン -->
+        <FrameLayout
+            android:id="@+id/snoozeIncrease"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/snooze_button_bg"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="＋"
+                android:textColor="#AAFFFFFF"
+                android:textSize="20sp" />
+        </FrameLayout>
+
+    </LinearLayout>
 
     <!-- 停止ボタン（内側円） -->
     <FrameLayout
@@ -81,10 +138,10 @@
         android:background="@android:color/transparent"
         android:clickable="true"
         android:focusable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/snoozeBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="100dp">
+        android:layout_marginBottom="24dp">
 
         <!-- 内側の円 -->
         <FrameLayout
@@ -102,16 +159,29 @@
         </FrameLayout>
     </FrameLayout>
 
-    <!-- 説明テキスト -->
+    <!-- リップルアニメーション用（stopButtonと同位置） -->
+    <View
+        android:id="@+id/rippleView"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="@drawable/circle_button_outer"
+        android:alpha="0"
+        app:layout_constraintBottom_toTopOf="@id/snoozeBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="24dp" />
+
+    <!-- 説明テキスト（再生ボタンの上） -->
     <TextView
+        android:id="@+id/urlHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="タップしてURLを開く"
         android:textColor="#AAFFFFFF"
         android:textSize="13sp"
-        app:layout_constraintTop_toBottomOf="@id/stopButton"
+        app:layout_constraintBottom_toTopOf="@id/stopButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp" />
+        android:layout_marginBottom="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

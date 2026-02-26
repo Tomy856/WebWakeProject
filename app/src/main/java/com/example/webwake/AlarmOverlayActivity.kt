@@ -16,7 +16,7 @@ import android.os.Looper
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.FrameLayout  // stopButton用に残す
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -36,6 +36,7 @@ class AlarmOverlayActivity : AppCompatActivity() {
     private val timeoutRunnable = Runnable { onTimeout() }
     private val TIMEOUT_MS = 60_000L  // 1分
     private var rippleView: View? = null
+    private var snoozeMinutes = 5
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,6 +90,9 @@ class AlarmOverlayActivity : AppCompatActivity() {
         // XMLのrippleViewでアニメーション開始
         val ripple = findViewById<View>(R.id.rippleView)
         ripple.post { startRippleAnimation(ripple) }
+
+        // スヌーズバーの初期化
+        setupSnoozeBar()
 
         // 1分後にタイムアウト
         handler.postDelayed(timeoutRunnable, TIMEOUT_MS)
@@ -197,6 +201,49 @@ class AlarmOverlayActivity : AppCompatActivity() {
             .build()
 
         nm.notify(alarmId.toInt(), notification)
+    }
+
+    private fun setupSnoozeBar() {
+        val snoozeLabel    = findViewById<TextView>(R.id.snoozeLabel)
+        val snoozeDecrease = findViewById<FrameLayout>(R.id.snoozeDecrease)
+        val snoozeIncrease = findViewById<FrameLayout>(R.id.snoozeIncrease)
+        val snoozeCenter   = findViewById<FrameLayout>(R.id.snoozeCenter)
+
+        fun updateUI() {
+            snoozeLabel.text = "スヌーズ：${snoozeMinutes}分"
+            // − ボタン: 5分の時はグレーアウト
+            snoozeDecrease.alpha = if (snoozeMinutes <= 5) 0.3f else 1.0f
+            snoozeDecrease.isClickable = snoozeMinutes > 5
+            // ＋ボタン: 60分の時はグレーアウト
+            snoozeIncrease.alpha = if (snoozeMinutes >= 60) 0.3f else 1.0f
+            snoozeIncrease.isClickable = snoozeMinutes < 60
+        }
+
+        // 初期状態を反映
+        updateUI()
+
+        // ＋ボタン
+        snoozeIncrease.setOnClickListener {
+            if (snoozeMinutes < 60) {
+                snoozeMinutes += 5
+                updateUI()
+            }
+        }
+
+        // －ボタン
+        snoozeDecrease.setOnClickListener {
+            if (snoozeMinutes > 5) {
+                snoozeMinutes -= 5
+                updateUI()
+            }
+        }
+
+        // スヌーズボタン（中央）タップ → アラーム停止してオーバーレイを閉じる
+        snoozeCenter.setOnClickListener {
+            handler.removeCallbacks(timeoutRunnable)
+            stopService(Intent(this, AlarmRingerService::class.java))
+            finish()
+        }
     }
 
     private fun startRippleAnimation(ripple: View) {
