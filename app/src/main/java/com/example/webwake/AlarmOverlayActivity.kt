@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.app.AlarmManager
 import android.app.KeyguardManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -238,12 +239,74 @@ class AlarmOverlayActivity : AppCompatActivity() {
             }
         }
 
-        // スヌーズボタン（中央）タップ → アラーム停止してオーバーレイを閉じる
+        // スヌーズボタン（中央）タップ → スヌーズ実行
         snoozeCenter.setOnClickListener {
             handler.removeCallbacks(timeoutRunnable)
             stopService(Intent(this, AlarmRingerService::class.java))
+            scheduleSnooze(snoozeMinutes)
             finish()
         }
+    }
+
+    private fun scheduleSnooze(minutes: Int) {
+        val triggerMs = System.currentTimeMillis() + minutes * 60 * 1000L
+
+        // AlarmReceiver にスヌーズ発火をセット
+        val intent = Intent(this, AlarmReceiver::class.java).apply {
+            putExtra("ALARM_ID", alarmId)
+            putExtra("ALARM_URL", alarmUrl)
+        }
+        val pi = PendingIntent.getBroadcast(
+            this,
+            (alarmId + 9000).toInt(),  // スヌーズ用のリクエストコード
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(AlarmManager::class.java)
+        val showIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(triggerMs, showIntent), pi)
+
+        // 「アラームはXX時XX分に鳴動します」通知を残す
+        val nm = getSystemService(NotificationManager::class.java)
+        val channelId = "alarm_snooze_v1"
+        if (nm.getNotificationChannel(channelId) == null) {
+            NotificationChannel(channelId, "スヌーズ予告", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }.also { nm.createNotificationChannel(it) }
+        }
+
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = triggerMs }
+        val hour   = cal.get(java.util.Calendar.HOUR_OF_DAY)
+        val minute = cal.get(java.util.Calendar.MINUTE)
+        val period = if (hour < 12) "午前" else "午後"
+        val displayHour = when {
+            hour == 0 || hour == 12 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        val timeText = "${period}${displayHour}:${String.format("%02d", minute)}"
+
+        val tapPi = PendingIntent.getActivity(
+            this, 1,
+            Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle("⏰ アラームがスヌーズ")
+            .setContentText("アラームは${timeText}に鳴動します。")
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(tapPi)
+            .setAutoCancel(true)
+            .build()
+        nm.notify((alarmId + 9000).toInt(), notification)
     }
 
     private fun startRippleAnimation(ripple: View) {
