@@ -63,6 +63,65 @@ object AlarmScheduler {
                 cancelAlarm(context, alarmManager, "${alarm.id}_$dayOfWeek".hashCode())
             }
         }
+
+        // 15分前通知もキャンセル
+        cancelPreAlarmNotification(context, alarm)
+    }
+
+    private fun schedulePreAlarmNotification(
+        context: Context, alarm: Alarm, triggerTime: Long, dayOfWeek: Int? = null
+    ) {
+        val now = System.currentTimeMillis()
+        if (triggerTime - now <= 0) return  // すでに過ぎたアラームはスキップ
+
+        val preTime = triggerTime - 15 * 60 * 1000L
+        val actualPreTime = if (preTime <= now) now + 1000L else preTime
+
+        // 曜日ごとに別リクエストコード（上書き防止）
+        val reqCode = if (dayOfWeek != null)
+            "${alarm.id}_pre_$dayOfWeek".hashCode()
+        else
+            PreAlarmReceiver.requestCode(alarm.id)
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, PreAlarmReceiver::class.java).apply {
+            putExtra("ALARM_ID", alarm.id)
+            putExtra("IS_REPEAT", alarm.repeatDays.isNotEmpty())
+            putExtra("ALARM_HOUR", alarm.hour)
+            putExtra("ALARM_MINUTE", alarm.minute)
+        }
+        val pi = PendingIntent.getBroadcast(
+            context, reqCode, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        try {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, actualPreTime, pi)
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun cancelPreAlarmNotification(context: Context, alarm: Alarm) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (alarm.repeatDays.isEmpty()) {
+            val pi = PendingIntent.getBroadcast(
+                context, PreAlarmReceiver.requestCode(alarm.id),
+                Intent(context, PreAlarmReceiver::class.java),
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            pi?.let { alarmManager.cancel(it) }
+        } else {
+            // 曜日ごとにキャンセル
+            alarm.repeatDays.forEach { dayOfWeek ->
+                val reqCode = "${alarm.id}_pre_$dayOfWeek".hashCode()
+                val pi = PendingIntent.getBroadcast(
+                    context, reqCode,
+                    Intent(context, PreAlarmReceiver::class.java),
+                    PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+                )
+                pi?.let { alarmManager.cancel(it) }
+            }
+        }
     }
 
     private fun setAlarm(
@@ -99,6 +158,9 @@ object AlarmScheduler {
         } catch (e: SecurityException) {
             e.printStackTrace()
         }
+
+        // 15分前通知をセット（曜日ごとに別コード）
+        schedulePreAlarmNotification(context, alarm, triggerTime, dayOfWeek)
     }
 
     private fun cancelAlarm(context: Context, alarmManager: AlarmManager, requestCode: Int) {

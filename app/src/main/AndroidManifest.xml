@@ -76,6 +76,16 @@
             android:enabled="true"
             android:exported="false" />
 
+        <receiver
+            android:name=".PreAlarmReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.webwake.ACTION_PRE_ALARM_OFF" />
+                <action android:name="com.example.webwake.ACTION_PRE_ALARM_OFF_TODAY" />
+            </intent-filter>
+        </receiver>
+
         <!-- 端末再起動後にアラームを復元するReceiver -->
         <receiver
             android:name=".BootReceiver"

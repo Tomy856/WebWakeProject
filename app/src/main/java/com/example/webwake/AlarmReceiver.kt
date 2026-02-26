@@ -38,6 +38,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 alarms[index] = alarm.copy(isEnabled = false)
                 storage.saveAlarms(alarms)
             }
+        } else {
+            // ---- 毎週繰り返し → 次回の同じ曜日を再スケジュール（15分前通知も含む） ----
+            AlarmScheduler.schedule(context, alarm)
         }
 
         val alarmUrl = alarm.url

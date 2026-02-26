@@ -272,14 +272,17 @@ class AlarmSetupActivity : AppCompatActivity() {
 
         val alarm = if (existingAlarm != null) {
             existingAlarm!!.copy(
-                hour            = hour,
-                minute          = minute,
-                label           = label,
-                url             = url,
-                repeatDays      = selectedDays.toSet(),
-                excludeHolidays = excludeHolidays,
-                specificDate    = specificDate,
-                isEnabled       = true
+                hour                = hour,
+                minute              = minute,
+                label               = label,
+                url                 = url,
+                repeatDays          = selectedDays.toSet(),
+                excludeHolidays     = excludeHolidays,
+                specificDate        = specificDate,
+                isEnabled           = true,
+                isReactivated       = false,
+                showReactivateButton = false,
+                lastScheduledMillis = 0L
             )
         } else {
             Alarm(
@@ -314,6 +317,8 @@ class AlarmSetupActivity : AppCompatActivity() {
         }
 
         try {
+            // 編集前の設定をキャンセルしてから新しい設定でスケジュール
+            existingAlarm?.let { AlarmScheduler.cancel(this, it) }
             AlarmScheduler.schedule(this, alarm)
             // 現在時刻からアラームまでの残り時間を計算
             val now = System.currentTimeMillis()
