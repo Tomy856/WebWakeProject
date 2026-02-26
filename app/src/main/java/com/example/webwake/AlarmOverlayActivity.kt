@@ -1,13 +1,25 @@
 package com.example.webwake
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.app.KeyguardManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 import android.view.WindowManager
-import android.widget.FrameLayout
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.FrameLayout  // stopButton用に残す
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 
 /**
  * アラーム発火時にロック画面上に表示されるオーバーレイ画面
@@ -17,7 +29,13 @@ class AlarmOverlayActivity : AppCompatActivity() {
 
     private var alarmUrl: String = ""
     private var alarmId: Long = -1
+    private var alarmHour: Int = -1
+    private var alarmMinute: Int = -1
     private var wakeLock: android.os.PowerManager.WakeLock? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeoutRunnable = Runnable { onTimeout() }
+    private val TIMEOUT_MS = 60_000L  // 1分
+    private var rippleView: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,17 +68,30 @@ class AlarmOverlayActivity : AppCompatActivity() {
         alarmId  = intent.getLongExtra("ALARM_ID", -1)
         alarmUrl = intent.getStringExtra("ALARM_URL") ?: ""
 
-        // ラベルがあれば表示
+        // ラベル・時刻を取得
         val storage = AlarmStorage(this)
         val alarm   = storage.loadAlarms().find { it.id == alarmId }
-        if (alarm != null && alarm.label.isNotEmpty()) {
-            findViewById<TextView>(R.id.alarmLabel).text = alarm.label
+        if (alarm != null) {
+            if (alarm.label.isNotEmpty()) {
+                findViewById<TextView>(R.id.alarmLabel).text = alarm.label
+            }
+            alarmHour   = alarm.hour
+            alarmMinute = alarm.minute
         }
 
-        // × ボタン: RingerService停止 → ブラウザ起動 → この画面を閉じる
-        findViewById<FrameLayout>(R.id.stopButton).setOnClickListener {
+        // ボタン: RingerService停止 → ブラウザ起動 → この画面を閉じる
+        val stopButton = findViewById<FrameLayout>(R.id.stopButton)
+        stopButton.setOnClickListener {
+            handler.removeCallbacks(timeoutRunnable)
             launchAndStop()
         }
+
+        // XMLのrippleViewでアニメーション開始
+        val ripple = findViewById<View>(R.id.rippleView)
+        ripple.post { startRippleAnimation(ripple) }
+
+        // 1分後にタイムアウト
+        handler.postDelayed(timeoutRunnable, TIMEOUT_MS)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -115,8 +146,90 @@ class AlarmOverlayActivity : AppCompatActivity() {
         // 何もしない
     }
 
+    private fun onTimeout() {
+        // RingerService を停止
+        stopService(Intent(this, AlarmRingerService::class.java))
+
+        // 「設定した時間にアラームが鳴りました」通知を残す
+        showMissedNotification()
+
+        finish()
+    }
+
+    private fun showMissedNotification() {
+        val nm = getSystemService(NotificationManager::class.java)
+        val channelId = "alarm_missed_v1"
+
+        // 既存チャンネルを削除して重要度をリセット（一度作成すると変更不可のため）
+        nm.deleteNotificationChannel(channelId)
+        NotificationChannel(channelId, "アラーム履歴", NotificationManager.IMPORTANCE_HIGH).apply {
+            setSound(null, null)
+            enableVibration(false)
+        }.also { nm.createNotificationChannel(it) }
+
+        // タップで MainActivity を開く
+        val tapIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // 「設定した時間」を表示
+        val timeText = if (alarmHour >= 0 && alarmMinute >= 0) {
+            val period = if (alarmHour < 12) "午前" else "午後"
+            val displayHour = when {
+                alarmHour == 0 || alarmHour == 12 -> 12
+                alarmHour > 12 -> alarmHour - 12
+                else -> alarmHour
+            }
+            "${period}${displayHour}:${String.format("%02d", alarmMinute)}"
+        } else ""
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle("⏰ アラームが鳴りました")
+            .setContentText("${timeText}に設定したアラームが鳴りました")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(tapIntent)
+            .setAutoCancel(true)
+            .build()
+
+        nm.notify(alarmId.toInt(), notification)
+    }
+
+    private fun startRippleAnimation(ripple: View) {
+        // 内側円(80dp) / 外側円(120dp) = 0.667f をスタート地点にする
+        val startScale = 80f / 120f
+        val endScale   = 1.8f
+
+        fun loop() {
+            ripple.scaleX = startScale
+            ripple.scaleY = startScale
+            ripple.alpha  = 0.8f
+            val scaleX = ObjectAnimator.ofFloat(ripple, "scaleX", startScale, endScale)
+            val scaleY = ObjectAnimator.ofFloat(ripple, "scaleY", startScale, endScale)
+            val alpha  = ObjectAnimator.ofFloat(ripple, "alpha", 0.8f, 0f)
+            AnimatorSet().apply {
+                playTogether(scaleX, scaleY, alpha)
+                duration = 1500
+                interpolator = AccelerateDecelerateInterpolator()
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        loop()
+                    }
+                })
+                start()
+            }
+        }
+        loop()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        handler.removeCallbacks(timeoutRunnable)
+        rippleView = null
         if (wakeLock?.isHeld == true) wakeLock?.release()
         wakeLock = null
     }

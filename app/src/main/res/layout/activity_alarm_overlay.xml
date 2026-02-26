@@ -61,25 +61,45 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="6dp" />
 
-    <!-- × 停止ボタン（中央） -->
+    <!-- リップルアニメーション用（内側円より後ろ・はみ出し可能） -->
+    <View
+        android:id="@+id/rippleView"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="@drawable/circle_button_outer"
+        android:alpha="0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="100dp" />
+
+    <!-- 停止ボタン（内側円） -->
     <FrameLayout
         android:id="@+id/stopButton"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:background="@drawable/circle_button_bg"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="@android:color/transparent"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="120dp">
+        android:layout_marginBottom="100dp">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <!-- 内側の円 -->
+        <FrameLayout
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_gravity="center"
-            android:src="@android:drawable/ic_media_play"
-            android:tint="#FFFFFF" />
+            android:background="@drawable/circle_button_inner">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="#FFFFFF" />
+        </FrameLayout>
     </FrameLayout>
 
     <!-- 説明テキスト -->
