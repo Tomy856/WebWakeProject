@@ -74,13 +74,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="120dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center"
-            android:text="×"
-            android:textColor="#FFFFFF"
-            android:textSize="36sp" />
+            android:src="@android:drawable/ic_media_play"
+            android:tint="#FFFFFF" />
     </FrameLayout>
 
     <!-- 説明テキスト -->
