@@ -47,7 +47,7 @@ class AlarmReceiver : BroadcastReceiver() {
         nm.deleteNotificationChannel("alarm_channel2")
         nm.deleteNotificationChannel("alarm_channel")
 
-        // RingerService のみ起動（通知・サウンド・バイブはすべてRingerService側で管理）
+        // RingerService を起動（サウンド・バイブ・画面起動はすべてRingerService内で実施）
         val ringerIntent = Intent(context, AlarmRingerService::class.java).apply {
             putExtra("ALARM_ID", alarmId)
             putExtra("ALARM_URL", alarmUrl)

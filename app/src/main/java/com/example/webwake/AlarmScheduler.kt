@@ -82,8 +82,20 @@ object AlarmScheduler {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        // setAlarmClock を使用: Androidが"本物のアラーム"と認識し、
+        // 画面OFF時でもロック画面上に直接Activityを起動できる
+        // showIntent = ステータスバーの時計アイコンタップ時に開く画面
+        val showIntent = Intent(context, MainActivity::class.java)
+        val showPi = PendingIntent.getActivity(
+            context, 0, showIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         try {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(triggerTime, showPi),
+                pendingIntent
+            )
         } catch (e: SecurityException) {
             e.printStackTrace()
         }

@@ -19,9 +19,10 @@ import androidx.core.app.NotificationCompat
 class AlarmRingerService : Service() {
 
     companion object {
-        const val CHANNEL_ID     = "alarm_ringer_v4"
-        const val NOTIFICATION_ID = 2001
-        const val ACTION_STOP    = "com.example.webwake.ACTION_STOP_RINGER"
+        const val CHANNEL_ID        = "alarm_ringer_v5"   // 新IDでチャンネル設定をリセット
+        const val CHANNEL_ID_SILENT = "alarm_ringer_silent_v1"
+        const val NOTIFICATION_ID   = 2001
+        const val ACTION_STOP       = "com.example.webwake.ACTION_STOP_RINGER"
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -51,17 +52,6 @@ class AlarmRingerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // タップでブラウザ起動
-        val launchPi = PendingIntent.getActivity(
-            this, alarmId.toInt(),
-            Intent(this, AlarmLaunchActivity::class.java).apply {
-                putExtra("ALARM_ID", alarmId)
-                putExtra("ALARM_URL", alarmUrl)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         // WakeLockで画面を強制点灯
         val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
         @Suppress("DEPRECATION")
@@ -71,7 +61,7 @@ class AlarmRingerService : Service() {
             "webwake:alarmwakelock"
         ).also { it.acquire(60_000L) }
 
-        // AlarmOverlayActivity を fullScreenIntent で起動（Android公式の画面OFF→Activity表示の方法）
+        // AlarmOverlayActivity を起動
         val overlayIntent = Intent(this, AlarmOverlayActivity::class.java).apply {
             putExtra("ALARM_ID", alarmId)
             putExtra("ALARM_URL", alarmUrl)
@@ -82,23 +72,86 @@ class AlarmRingerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("⏰ アラーム")
-            .setContentText("タップしてURLを開く")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(true)
-            .setAutoCancel(false)
-            .setSound(null)
-            .setVibrate(longArrayOf(0L))
-            .setContentIntent(overlayPi)
-            .setFullScreenIntent(overlayPi, true)  // 画面OFFから直接Activityを起動する公式手段
-            .addAction(android.R.drawable.ic_delete, "⏹ 停止", stopPi)
-            .build()
+        val isAppForeground = (getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager)
+            .runningAppProcesses?.any {
+                it.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                it.processName == packageName
+            } ?: false
 
-        startForeground(NOTIFICATION_ID, notification)
+        android.util.Log.d("AlarmRinger", "=== onStartCommand ===")
+        android.util.Log.d("AlarmRinger", "isAppForeground=$isAppForeground alarmId=$alarmId")
+
+        // fullScreenIntent を使えるか確認（Android 14+）
+        val nm2 = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val canFsi = nm2.canUseFullScreenIntent()
+            android.util.Log.d("AlarmRinger", "canUseFullScreenIntent=$canFsi")
+        }
+
+        // チャンネルの重要度をログ
+        val ch = nm2.getNotificationChannel(CHANNEL_ID)
+        android.util.Log.d("AlarmRinger", "channel=$CHANNEL_ID importance=${ch?.importance} exists=${ch != null}")
+
+        if (isAppForeground) {
+            android.util.Log.d("AlarmRinger", "-> startActivity directly")
+            startActivity(overlayIntent)
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID_SILENT)
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle("⏰ アラーム")
+                .setContentText("タップしてURLを開く")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                .setOngoing(true)
+                .setSound(null)
+                .setVibrate(longArrayOf(0L))
+                .setContentIntent(overlayPi)
+                .build()
+            startForeground(NOTIFICATION_ID, notification)
+        } else {
+            android.util.Log.d("AlarmRinger", "-> background alarm")
+
+            // サイレント通知（バナーなし）でサービスを維持
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID_SILENT)
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle("⏰ アラーム")
+                .setContentText("タップしてURLを開く")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                .setOngoing(true)
+                .setSound(null)
+                .setVibrate(longArrayOf(0L))
+                .setContentIntent(overlayPi)
+                .build()
+            startForeground(NOTIFICATION_ID, notification)
+
+            val wm = getSystemService(WINDOW_SERVICE) as android.view.WindowManager
+            val canOverlay = android.provider.Settings.canDrawOverlays(this)
+            android.util.Log.d("AlarmRinger", "canDrawOverlays=$canOverlay")
+
+            if (canOverlay) {
+                // SYSTEM_ALERT_WINDOW で直接オーバーレイ表示
+                overlayIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                startActivity(overlayIntent)
+                android.util.Log.d("AlarmRinger", "startActivity with SYSTEM_ALERT_WINDOW")
+            } else {
+                // 権限なしの場合は fullScreenIntent でフォールバック
+                val fsiNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                    .setContentTitle("⏰ アラーム")
+                    .setContentText("タップしてURLを開く")
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setOngoing(true)
+                    .setSound(null)
+                    .setVibrate(longArrayOf(0L))
+                    .setContentIntent(overlayPi)
+                    .setFullScreenIntent(overlayPi, true)
+                    .build()
+                startForeground(NOTIFICATION_ID, fsiNotification)
+                android.util.Log.d("AlarmRinger", "fallback to fullScreenIntent")
+            }
+        }
 
         startRinging()
 
@@ -200,14 +253,27 @@ class AlarmRingerService : Service() {
             "alarm_ringer_channel", "alarm_ringer_channel_v2", "alarm_ringer_channel_v3"
         ).forEach { nm.deleteNotificationChannel(it) }
 
-        if (nm.getNotificationChannel(CHANNEL_ID) != null) return
+        // 古いv4チャンネルも削除してリセット
+        nm.deleteNotificationChannel("alarm_ringer_v4")
 
-        // IMPORTANCE_HIGH だが setSound(null) でチャンネル音を完全無効
-        NotificationChannel(CHANNEL_ID, "アラーム着信", NotificationManager.IMPORTANCE_HIGH).apply {
-            setBypassDnd(true)
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            setSound(null, null)          // チャンネルサウンド無効
-            enableVibration(false)        // チャンネルバイブ無効
-        }.also { nm.createNotificationChannel(it) }
+        // メインチャンネル（画面OFF時・fullScreenIntent用・新ID）
+        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+            NotificationChannel(CHANNEL_ID, "アラーム着信", NotificationManager.IMPORTANCE_HIGH).apply {
+                setBypassDnd(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setSound(null, null)
+                enableVibration(false)
+            }.also { nm.createNotificationChannel(it) }
+        }
+
+        // サイレントチャンネル（アプリ起動中・バナー完全非表示用）
+        if (nm.getNotificationChannel(CHANNEL_ID_SILENT) == null) {
+            NotificationChannel(CHANNEL_ID_SILENT, "アラーム（サイレント）", NotificationManager.IMPORTANCE_MIN).apply {
+                setBypassDnd(false)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
+                setSound(null, null)
+                enableVibration(false)
+            }.also { nm.createNotificationChannel(it) }
+        }
     }
 }

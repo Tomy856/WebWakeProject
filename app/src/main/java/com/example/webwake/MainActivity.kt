@@ -377,6 +377,23 @@ class MainActivity : AppCompatActivity() {
         } else {
             android.util.Log.d("Permission", "SDK < 34, no fullscreen intent check needed")
         }
+
+        // Step4: SYSTEM_ALERT_WINDOW (他のアプリの上に表示権限)
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            android.app.AlertDialog.Builder(this)
+                .setTitle("追加設定が必要です")
+                .setMessage("アラーム発火時に画面を直接表示するには、設定から「WebWake」の「他のアプリの上に表示」を許可する必要があります。")
+                .setPositiveButton("設定を開く") { _, _ ->
+                    startActivity(
+                        android.content.Intent(
+                            android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            "package:$packageName".toUri()
+                        )
+                    )
+                }
+                .setNegativeButton("キャンセル", null)
+                .show()
+        }
     }
 
     @android.annotation.SuppressLint("NewApi")
