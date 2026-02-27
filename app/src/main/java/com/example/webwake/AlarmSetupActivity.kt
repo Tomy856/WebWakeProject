@@ -257,7 +257,9 @@ class AlarmSetupActivity : AppCompatActivity() {
                 .putString("draft_repeat_days", selectedDays.joinToString(","))
                 .putBoolean("draft_exists", true)
                 .apply()
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com"))
+            val currentUrl = urlEditText.text.toString().trim()
+            val openUrl = if (currentUrl.isNotEmpty()) currentUrl else "https://www.youtube.com"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(openUrl))
             startActivity(intent)
         }
 
