@@ -24,14 +24,15 @@
     <style name="TimePickerTheme" parent="ThemeOverlay.AppCompat.Dialog">
         <!-- 選択中のテキスト色（白） -->
         <item name="android:textColorPrimary">@android:color/white</item>
-        <!-- 非選択のテキスト色（グレー） -->
-        <item name="android:textColorSecondary">#666666</item>
+        <!-- 非選択のテキスト色（暗いグレー） -->
+        <item name="android:textColorSecondary">#555555</item>
         <!-- 背景色（黒） -->
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:colorBackgroundFloating">@android:color/black</item>
         <!-- 区切り線の色（ダークグレー） -->
         <item name="android:colorControlNormal">#333333</item>
-        <!-- テキストサイズを大きく -->
-        <item name="android:textSize">28sp</item>
+        <!-- テキストサイズを大きく・太字に -->
+        <item name="android:textSize">42sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

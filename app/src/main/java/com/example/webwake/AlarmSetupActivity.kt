@@ -503,21 +503,85 @@ class AlarmSetupActivity : AppCompatActivity() {
         }
     }
 
-    // TimePickerのスピナー間のコロンを整理（既存コロンを使い回す）
+    // NumberPicker内の非選択行のTextViewを再帰的に探して色を適用
+    private fun applyNumberPickerColors(view: android.view.View) {
+        if (view is android.widget.NumberPicker) {
+            // NumberPicker内の全TextViewに色を設定
+            setNumberPickerTextColors(view)
+        } else if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                applyNumberPickerColors(view.getChildAt(i))
+            }
+        }
+    }
+
+    private fun setNumberPickerTextColors(np: android.widget.NumberPicker) {
+        val selectedColor = 0xFFFFFFFF.toInt()
+        val dimColor     = 0xFF555555.toInt()
+        try {
+            // mSelectedTextColor
+            val f1 = np.javaClass.getDeclaredField("mSelectedTextColor")
+            f1.isAccessible = true; f1.setInt(np, selectedColor)
+        } catch (_: Exception) {}
+        try {
+            // mTextColor
+            val f2 = np.javaClass.getDeclaredField("mTextColor")
+            f2.isAccessible = true; f2.setInt(np, dimColor)
+        } catch (_: Exception) {}
+        try {
+            // mSelectorWheelPaint
+            val f3 = np.javaClass.getDeclaredField("mSelectorWheelPaint")
+            f3.isAccessible = true
+            (f3.get(np) as? android.graphics.Paint)?.color = dimColor
+        } catch (_: Exception) {}
+        // NumberPicker内のEditText（選択行）は白、それ以外のTextViewは暗く
+        for (i in 0 until np.childCount) {
+            when (val child = np.getChildAt(i)) {
+                is android.widget.EditText -> child.setTextColor(selectedColor)
+                is TextView -> child.setTextColor(dimColor)
+            }
+        }
+        np.invalidate()
+    }
+
+    // TimePickerのスピナーをカスタマイズ
     private fun customizeTimePicker(timePicker: TimePicker) {
         try {
             val timePickerLayout = timePicker.getChildAt(0) as? android.view.ViewGroup ?: return
             val spinnersLayout = timePickerLayout.getChildAt(1) as? android.view.ViewGroup ?: return
 
-            // 既存の子ビューをすべて調べて TextView（コロン候補）を探す
-            // 実機では既にコロンのTextViewが含まれている場合がある
+            // リフレクションで選択行・非選択行の色だけ設定（高さは変更しない）
+            for (i in 0 until spinnersLayout.childCount) {
+                val child = spinnersLayout.getChildAt(i)
+                if (child is android.view.ViewGroup) {
+                    try {
+                        val selectedColorField = child.javaClass.getDeclaredField("mSelectedTextColor")
+                        selectedColorField.isAccessible = true
+                        selectedColorField.setInt(child, 0xFFFFFFFF.toInt())
+                    } catch (_: Exception) {}
+                    try {
+                        val textColorField = child.javaClass.getDeclaredField("mTextColor")
+                        textColorField.isAccessible = true
+                        textColorField.setInt(child, 0xFF555555.toInt())
+                    } catch (_: Exception) {}
+                    try {
+                        val paintField = child.javaClass.getDeclaredField("mSelectorWheelPaint")
+                        paintField.isAccessible = true
+                        val paint = paintField.get(child) as? android.graphics.Paint
+                        paint?.color = 0xFF555555.toInt()
+                    } catch (_: Exception) {}
+                    child.invalidate()
+                }
+            }
+
+            // コロンの処理
             var existingColon: TextView? = null
             for (i in 0 until spinnersLayout.childCount) {
                 val child = spinnersLayout.getChildAt(i)
                 if (child is TextView) {
-                    // 既存コロンを見つけたらスタイルだけ上書きして使い回す
                     child.text = ":"
-                    child.textSize = 32f
+                    child.textSize = 42f
+                    child.setTypeface(child.typeface, android.graphics.Typeface.BOLD)
                     child.setTextColor(0xFFFFFFFF.toInt())
                     child.gravity = android.view.Gravity.CENTER
                     existingColon = child
@@ -525,11 +589,11 @@ class AlarmSetupActivity : AppCompatActivity() {
                 }
             }
 
-            // 既存コロンがなかった場合のみ新規追加
             if (existingColon == null && spinnersLayout.childCount >= 2) {
                 val colonView = TextView(this).apply {
                     text = ":"
-                    textSize = 32f
+                    textSize = 42f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
                     setTextColor(0xFFFFFFFF.toInt())
                     gravity = android.view.Gravity.CENTER
                     layoutParams = android.widget.LinearLayout.LayoutParams(
