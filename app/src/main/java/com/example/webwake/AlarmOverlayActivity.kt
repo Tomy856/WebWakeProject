@@ -51,6 +51,9 @@ class AlarmOverlayActivity : AppCompatActivity() {
             "webwake:overlaylock"
         ).also { it.acquire(300_000L) } // 最大5分
 
+        // Edge-to-Edge: ナビゲーションバー領域まで描画
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+
         // ロック画面上に表示・画面ON・画面を消さない
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
@@ -66,6 +69,17 @@ class AlarmOverlayActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_alarm_overlay)
+
+        // ナビゲーションバーの高さを考慮してスヌーズバーの余白を設定
+        val rootView = findViewById<View>(android.R.id.content)
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
+            val navBarHeight = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars()).bottom
+            val snoozeBar = findViewById<android.widget.LinearLayout>(R.id.snoozeBar)
+            val params = snoozeBar.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.bottomMargin = navBarHeight + (32 * resources.displayMetrics.density).toInt()
+            snoozeBar.layoutParams = params
+            insets
+        }
 
         alarmId  = intent.getLongExtra("ALARM_ID", -1)
         alarmUrl = intent.getStringExtra("ALARM_URL") ?: ""
