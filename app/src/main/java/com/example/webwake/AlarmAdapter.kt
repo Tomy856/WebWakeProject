@@ -123,8 +123,8 @@ class AlarmAdapter(
                 }
             }
 
-            if (alarm.isEnabled) {
-                // ON時: 「再度ON」ボタンで起動した時のみラベル横に鳴動情報を表示
+            if (alarm.isEnabled || (alarm.isReactivated && alarm.lastScheduledMillis > 0L)) {
+                // ON時 or 再度ONボタン押下後(isReactivated=true): 鳴動情報を表示
                 if (alarm.isReactivated && alarm.lastScheduledMillis > 0L) {
                     // lastScheduledMillis（「再度ON」でセットした実際の発火時刻）から直接ラベルを作る
                     val cal = Calendar.getInstance().apply { timeInMillis = alarm.lastScheduledMillis }

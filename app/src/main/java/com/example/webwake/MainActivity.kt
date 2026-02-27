@@ -428,9 +428,10 @@ class MainActivity : AppCompatActivity() {
         // 受け取った時刻をそのまま使用
         val nextTrigger = nextTriggerMillis
 
-        // isEnabled=true、isReactivated=true、showReactivateButton=falseで保存
+        // isEnabled=false、isReactivated=true、showReactivateButton=falseで保存
+        // スイッチはOFFのまま「アラームは明日鳴動」と表示する
         val updatedAlarm = alarm.copy(
-            isEnabled = true,
+            isEnabled = false,
             lastScheduledMillis = nextTrigger,
             isReactivated = true,
             showReactivateButton = false
