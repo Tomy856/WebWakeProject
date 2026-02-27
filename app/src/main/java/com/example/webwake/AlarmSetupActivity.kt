@@ -151,8 +151,64 @@ class AlarmSetupActivity : AppCompatActivity() {
             updateDayView(tv, index, selectedDays.contains(index), dayActiveColors, dayInactiveColor)
         }
 
-        // TimePickerの値が変わったときに日付テキストを更新
-        timePicker.setOnTimeChangedListener { _, _, _ ->
+        // TimePickerの値が変わったときの処理
+        // 分の59→0 や 0→59 の変化で時間が連動して動くのを防ぐ
+        var lastHour    = timePicker.hour
+        var lastMinute  = timePicker.minute
+        var ignoreNext  = false  // timePicker.hourをセットした時の再入防止
+        timePicker.setOnTimeChangedListener { _, newHour, newMinute ->
+            if (ignoreNext) {
+                ignoreNext = false
+                lastHour   = newHour
+                lastMinute = newMinute
+                return@setOnTimeChangedListener
+            }
+
+            val minuteWrappedUp   = lastMinute == 59 && newMinute == 0   // 59→0
+            val minuteWrappedDown = lastMinute == 0  && newMinute == 59  // 0→59
+            val hourOnly          = lastMinute == newMinute  // 分は変わらず時間だけ変化
+
+            when {
+                // 分の繰り上がりで時間が変わった → 元に戻す（境界以外）
+                minuteWrappedUp && newHour != lastHour && !(lastHour == 11 && newHour == 12) -> {
+                    ignoreNext = true
+                    timePicker.hour = lastHour
+                    lastMinute = newMinute
+                    updateDateText(timePicker, selectedDateText)
+                    return@setOnTimeChangedListener
+                }
+                // 分の繰り下がりで時間が変わった → 元に戻す（境界以外）
+                minuteWrappedDown && newHour != lastHour && !(lastHour == 12 && newHour == 11) -> {
+                    ignoreNext = true
+                    timePicker.hour = lastHour
+                    lastMinute = newMinute
+                    updateDateText(timePicker, selectedDateText)
+                    return@setOnTimeChangedListener
+                }
+                // 時間スピナーで 11→0 → 午前/午後切り替え
+                hourOnly && lastHour % 12 == 11 && newHour % 12 == 0 -> {
+                    // 午前11時(hour=11)から午後0時(hour=12)へ
+                    val targetHour = if (lastHour < 12) 12 else 0
+                    ignoreNext = true
+                    timePicker.hour = targetHour
+                    lastHour = targetHour
+                    updateDateText(timePicker, selectedDateText)
+                    return@setOnTimeChangedListener
+                }
+                // 時間スピナーで 0→11 → 午前/午後切り替え
+                hourOnly && lastHour % 12 == 0 && newHour % 12 == 11 -> {
+                    // 午後0時(hour=12)から午前11時(hour=11)へ
+                    val targetHour = if (lastHour >= 12) 11 else 23
+                    ignoreNext = true
+                    timePicker.hour = targetHour
+                    lastHour = targetHour
+                    updateDateText(timePicker, selectedDateText)
+                    return@setOnTimeChangedListener
+                }
+            }
+
+            lastHour   = newHour
+            lastMinute = newMinute
             updateDateText(timePicker, selectedDateText)
         }
 
