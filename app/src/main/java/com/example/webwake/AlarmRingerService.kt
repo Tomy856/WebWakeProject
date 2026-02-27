@@ -83,6 +83,10 @@ class AlarmRingerService : Service() {
 
         // fullScreenIntent を使えるか確認（Android 14+）
         val nm2 = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // 15分前予告通知をキャンセル
+        nm2.cancel(PreAlarmReceiver.notificationId(alarmId))
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val canFsi = nm2.canUseFullScreenIntent()
             android.util.Log.d("AlarmRinger", "canUseFullScreenIntent=$canFsi")

@@ -45,8 +45,11 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val alarmUrl = alarm.url
 
-        // 古い通知チャンネルを削除（サウンドが焼き付いている可能性）
+        // 15分前予告通知をキャンセル（アラームが鳴ったので不要）
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(PreAlarmReceiver.notificationId(alarmId))
+
+        // 古い通知チャンネルを削除（サウンドが焼き付いている可能性）
         nm.deleteNotificationChannel("alarm_channel2")
         nm.deleteNotificationChannel("alarm_channel")
 

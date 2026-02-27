@@ -20,6 +20,7 @@ import java.util.Calendar
 class AlarmSetupActivity : AppCompatActivity() {
 
     private lateinit var alarmStorage: AlarmStorage
+    private lateinit var sharedPrefs: android.content.SharedPreferences
     private var existingAlarm: Alarm? = null
 
     // 選択中の曜日セット (0=日〜6=土)
@@ -92,14 +93,28 @@ class AlarmSetupActivity : AppCompatActivity() {
         updateDateText(timePicker, selectedDateText)
 
         // 編集モードの場合、既存データを反映
-        val alarmId = intent.getLongExtra("ALARM_ID", -1)
+        // YouTube共有から戻った場合は保存しておいたalarmIdを復元
+        sharedPrefs = getSharedPreferences("alarm_setup_temp", MODE_PRIVATE)
+        val intentAlarmId = intent.getLongExtra("ALARM_ID", -1L)
+        val alarmId = if (intentAlarmId != -1L) {
+            // 通常の編集起動: IDを保存しておく
+            sharedPrefs.edit().putLong("editing_alarm_id", intentAlarmId).apply()
+            intentAlarmId
+        } else if (intent?.action == Intent.ACTION_SEND) {
+            // YouTube共有からの起動: 保存されたIDを復元
+            sharedPrefs.getLong("editing_alarm_id", -1L)
+        } else {
+            sharedPrefs.edit().remove("editing_alarm_id").apply()
+            -1L
+        }
         if (alarmId != -1L) {
             existingAlarm = alarmStorage.loadAlarms().find { it.id == alarmId }
             existingAlarm?.let { alarm ->
                 timePicker.hour   = alarm.hour
                 timePicker.minute = alarm.minute
                 labelEditText.setText(alarm.label)
-                urlEditText.setText(alarm.url)
+                // YouTube共有から戻った場合はsharedUrlで上書き、それ以外は元のURL
+                urlEditText.setText(sharedUrl ?: alarm.url)
                 excludeSwitch.isChecked = alarm.excludeHolidays
                 specificDate = alarm.specificDate
                 selectedDays.addAll(alarm.repeatDays)
@@ -107,6 +122,28 @@ class AlarmSetupActivity : AppCompatActivity() {
                 // 日付テキスト更新（曜日・特定日付を反映）
                 updateDateText(timePicker, selectedDateText)
             }
+        }
+
+        // YouTube共有から戻った場合、保存していた入力状態を復元（URLはsharedUrlを使用）
+        if (intent?.action == Intent.ACTION_SEND && sharedPrefs.getBoolean("draft_exists", false)) {
+            timePicker.hour   = sharedPrefs.getInt("draft_hour", timePicker.hour)
+            timePicker.minute = sharedPrefs.getInt("draft_minute", timePicker.minute)
+            labelEditText.setText(sharedPrefs.getString("draft_label", labelEditText.text.toString()))
+            excludeSwitch.isChecked = sharedPrefs.getBoolean("draft_exclude_holidays", excludeSwitch.isChecked)
+            specificDate = sharedPrefs.getString("draft_specific_date", specificDate) ?: specificDate
+            val daysStr = sharedPrefs.getString("draft_repeat_days", "")
+            if (!daysStr.isNullOrEmpty()) {
+                selectedDays.clear()
+                daysStr.split(",").mapNotNull { it.trim().toIntOrNull() }.forEach { selectedDays.add(it) }
+            }
+            // URLはsharedUrlを使用（既に上記でセット済み）
+            // 曜日ボタンの表示を更新
+            dayViews.forEachIndexed { index, tv ->
+                updateDayView(tv, index, selectedDays.contains(index), dayActiveColors, dayInactiveColor)
+            }
+            updateDateText(timePicker, selectedDateText)
+            // draftをクリア
+            sharedPrefs.edit().remove("draft_exists").apply()
         }
 
         // 曜日ボタンの初期色を反映
@@ -125,11 +162,9 @@ class AlarmSetupActivity : AppCompatActivity() {
                 if (selectedDays.contains(index)) selectedDays.remove(index)
                 else selectedDays.add(index)
                 updateDayView(tv, index, selectedDays.contains(index), dayActiveColors, dayInactiveColor)
-                // 曜日を選んだら特定日付をクリア
-                if (selectedDays.isNotEmpty()) {
-                    specificDate = ""
-                    updateDateText(timePicker, selectedDateText)
-                }
+                // 曜日を選んだら特定日付をクリア、空になった場合も日付テキストを更新
+                specificDate = ""
+                updateDateText(timePicker, selectedDateText)
             }
         }
 
@@ -153,15 +188,28 @@ class AlarmSetupActivity : AppCompatActivity() {
             ).show()
         }
 
-        // YouTubeボタン: ブラウザでYouTubeトップを開くだけ（URL欄は変更しない）
+        // YouTubeボタン: 入力中の状態を保存してからYouTubeを開く
         val youtubeButton = findViewById<LinearLayout>(R.id.youtubeButton)
         youtubeButton.setOnClickListener {
+            // 現在の入力状態を一時保存
+            sharedPrefs.edit()
+                .putInt("draft_hour", timePicker.hour)
+                .putInt("draft_minute", timePicker.minute)
+                .putString("draft_label", labelEditText.text.toString())
+                .putString("draft_specific_date", specificDate)
+                .putBoolean("draft_exclude_holidays", excludeSwitch.isChecked)
+                .putString("draft_repeat_days", selectedDays.joinToString(","))
+                .putBoolean("draft_exists", true)
+                .apply()
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com"))
             startActivity(intent)
         }
 
         // キャンセル
-        cancelButton.setOnClickListener { finish() }
+        cancelButton.setOnClickListener {
+            sharedPrefs.edit().remove("editing_alarm_id").remove("draft_exists").apply()
+            finish()
+        }
 
         // 保存
         saveButton.setOnClickListener {
@@ -317,6 +365,8 @@ class AlarmSetupActivity : AppCompatActivity() {
         }
 
         try {
+            // 保存完了時にテンポラリーIDとdraftをクリア
+            sharedPrefs.edit().remove("editing_alarm_id").remove("draft_exists").apply()
             // 編集前の設定をキャンセルしてから新しい設定でスケジュール
             existingAlarm?.let { AlarmScheduler.cancel(this, it) }
             AlarmScheduler.schedule(this, alarm)
