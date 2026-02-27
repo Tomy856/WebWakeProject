@@ -515,6 +515,11 @@ class MainActivity : AppCompatActivity() {
                 val li = alarmList.indexOfFirst { it.id == alarm.id }
                 if (li != -1) alarmList[li] = savedAlarm
             }
+            // トースト表示
+            val nextMs = if (triggerMillis > 0L) triggerMillis else {
+                getNextTriggerTime(updatedAlarm) ?: System.currentTimeMillis()
+            }
+            showAlarmToast(nextMs)
         } else {
             // OFFにする直前に「次に鳴るはずだった時刻」を lastScheduledMillis に保存
             // かつ showReactivateButton=true をセット（スイッチで手動OFFの時のみ）
@@ -536,6 +541,25 @@ class MainActivity : AppCompatActivity() {
 
         // alarmList が更新された状態でヘッダーを再計算
         updateNextAlarmHeader()
+    }
+
+    private fun showAlarmToast(nextTriggerMillis: Long) {
+        val now = System.currentTimeMillis()
+        val diffMin = ((nextTriggerMillis - now) / 1000 / 60).toInt()
+        val days  = diffMin / (60 * 24)
+        val hours = (diffMin % (60 * 24)) / 60
+        val mins  = diffMin % 60
+        val message = when {
+            diffMin < 1                            -> "まもなくアラームが鳴ります"
+            days > 0 && hours == 0 && mins == 0    -> "${days}日後にアラームが鳴ります"
+            days > 0 && hours == 0                 -> "${days}日${mins}分後にアラームが鳴ります"
+            days > 0 && mins == 0                  -> "${days}日${hours}時間後にアラームが鳴ります"
+            days > 0                               -> "${days}日${hours}時間${mins}分後にアラームが鳴ります"
+            hours > 0 && mins == 0                 -> "${hours}時間後にアラームが鳴ります"
+            hours > 0                              -> "${hours}時間${mins}分後にアラームが鳴ります"
+            else                                   -> "${mins}分後にアラームが鳴ります"
+        }
+        android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     // 次に鳴るはずの時刻を現在時刻基準で計算
