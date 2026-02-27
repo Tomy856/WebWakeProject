@@ -163,7 +163,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (enabledAlarms.isEmpty()) {
+        // isReactivated=trueのアラームも「予約済み」として扱う
+        val reactivatedAlarms = alarmList.filter { !it.isEnabled && it.isReactivated && it.lastScheduledMillis > System.currentTimeMillis() }
+        val activeAlarms = enabledAlarms + reactivatedAlarms
+
+        if (activeAlarms.isEmpty()) {
             // アラームはあるが全てOFF → 「全てのアラームがOFF」を表示
             headerTitle.text = "全てのアラームがOFF"
             headerTitle.visibility = View.VISIBLE
@@ -172,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 次に鳴るアラームを計算
-        val nextTrigger = enabledAlarms
+        val nextTrigger = activeAlarms
             .mapNotNull { alarm -> getNextTriggerTime(alarm)?.let { time -> Pair(alarm, time) } }
             .minByOrNull { it.second }
 
