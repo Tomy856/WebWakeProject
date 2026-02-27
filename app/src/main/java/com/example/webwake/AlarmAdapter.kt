@@ -86,12 +86,18 @@ class AlarmAdapter(
         // ---- 午前/午後・時刻 ----
         holder.alarmPeriod.text = if (alarm.hour < 12) "午前" else "午後"
         val displayHour = when {
-            alarm.hour == 0  -> 0   // 午前0時 → 0時
-            alarm.hour == 12 -> 0   // 午後12時 → 0時
+            alarm.hour == 0  -> 0
+            alarm.hour == 12 -> 0
             alarm.hour > 12  -> alarm.hour - 12
             else             -> alarm.hour
         }
         holder.alarmTime.text = String.format("%d:%02d", displayHour, alarm.minute)
+
+        // OFF時は時刻・午前午後を暗く表示
+        val isOff = !alarm.isEnabled
+        val timeColor = if (isOff) 0xFF666666.toInt() else 0xFFFFFFFF.toInt()
+        holder.alarmPeriod.setTextColor(timeColor)
+        holder.alarmTime.setTextColor(timeColor)
 
         // ---- 曜日 / 日付 / 次回鳴動テキスト ----
         val dayViews = listOf(
@@ -109,17 +115,20 @@ class AlarmAdapter(
             val isAllDays = alarm.repeatDays.size == 7
 
             if (isAllDays) {
-                // 全曜日 → 曜日行を非表示にして「毎日」を日付テキスト欄に表示
                 holder.daysLayout.visibility    = View.GONE
                 holder.alarmDateText.visibility = View.VISIBLE
                 holder.alarmDateText.text       = "毎日"
+                holder.alarmDateText.setTextColor(if (isOff) 0xFF666666.toInt() else 0xFF7B68EE.toInt())
             } else {
                 holder.daysLayout.visibility    = View.VISIBLE
                 holder.alarmDateText.visibility = View.GONE
                 dayViews.forEachIndexed { index, tv ->
                     val active = alarm.repeatDays.contains(index)
-                    tv.setTextColor(if (active) activeColor else inactiveColor)
-                    dotViews[index].visibility = if (active) View.VISIBLE else View.INVISIBLE
+                    tv.setTextColor(
+                        if (isOff) 0xFF444444.toInt()
+                        else if (active) activeColor else inactiveColor
+                    )
+                    dotViews[index].visibility = if (active && !isOff) View.VISIBLE else View.INVISIBLE
                 }
             }
 
