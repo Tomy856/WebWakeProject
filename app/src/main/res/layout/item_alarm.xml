@@ -292,14 +292,14 @@
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@android:drawable/ic_lock_idle_alarm"
-                    app:tint="#AAAAAA" />
+                    app:tint="#FFFFFF" />
 
                 <TextView
                     android:id="@+id/nextOnText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:textColor="#AAAAAA"
+                    android:textColor="#FFFFFF"
                     android:textSize="13sp" />
 
             </LinearLayout>

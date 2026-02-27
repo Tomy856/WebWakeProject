@@ -131,13 +131,18 @@ class AlarmAdapter(
                     val dow = listOf("日","月","火","水","木","金","土")[cal.get(Calendar.DAY_OF_WEEK) - 1]
                     val now = System.currentTimeMillis()
                     val oneWeekMillis = 7L * 24 * 60 * 60 * 1000
-                    val label = if (alarm.lastScheduledMillis - now >= oneWeekMillis) {
-                        "${cal.get(Calendar.MONTH) + 1}月${cal.get(Calendar.DAY_OF_MONTH)}日"
-                    } else {
-                        "${dow}曜日"
+                                val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+                    val isTomorrow = cal.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
+                                     cal.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR)
+                    val label = when {
+                        isTomorrow -> "明日"
+                        alarm.lastScheduledMillis - now >= oneWeekMillis ->
+                            "${cal.get(Calendar.MONTH) + 1}月${cal.get(Calendar.DAY_OF_MONTH)}日"
+                        else -> "${dow}曜日"
                     }
+                    val suffix = if (isTomorrow) "鳴動" else "に鳴動"
                     holder.nextRingText.visibility = View.VISIBLE
-                    holder.nextRingText.text       = "アラームは${label}に鳴動"
+                    holder.nextRingText.text       = "アラームは${label}${suffix}"
                 } else {
                     // 通常スイッチONはnextRingTextを非表示
                     holder.nextRingText.visibility = View.GONE
@@ -266,11 +271,15 @@ class AlarmAdapter(
             Pair(dayOfWeek, cal.timeInMillis)
         }.minByOrNull { it.second } ?: return Pair(null, null)
 
-        val label = if (nextEntry.second - now >= oneWeekMillis) {
-            val cal   = Calendar.getInstance().apply { timeInMillis = nextEntry.second }
-            "${cal.get(Calendar.MONTH) + 1}月${cal.get(Calendar.DAY_OF_MONTH)}日"
-        } else {
-            "${dayNames[nextEntry.first]}曜日"
+        val nextCal = Calendar.getInstance().apply { timeInMillis = nextEntry.second }
+        val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+        val isTomorrow = nextCal.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
+                         nextCal.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR)
+        val label = when {
+            isTomorrow -> "明日"
+            nextEntry.second - now >= oneWeekMillis ->
+                "${nextCal.get(Calendar.MONTH) + 1}月${nextCal.get(Calendar.DAY_OF_MONTH)}日"
+            else -> "${dayNames[nextEntry.first]}曜日"
         }
         return Pair(label, nextEntry.second)
     }
